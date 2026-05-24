@@ -1,0 +1,40 @@
+{
+  "name": "@yui540/comimi",
+  "version": "0.1.0",
+  "description": "Framework-agnostic TypeScript manga viewer for the browser.",
+  "keywords": [
+    "manga",
+    "comic",
+    "viewer",
+    "reader",
+    "typescript"
+  ],
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "locales",
+    "docs"
+  ],
+  "scripts": {
+    "dev": "vite examples/preview --host 0.0.0.0",
+    "build": "tsc --noEmit && vite build && tsc -p tsconfig.build.json",
+    "preview": "vite preview examples/preview --host 0.0.0.0",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-basic-ssl": "latest",
+    "typescript": "latest",
+    "vite": "latest"
+  }
+}
