@@ -1,0 +1,503 @@
+import {
+  createInitialState,
+  defaultSettings,
+  getPageStep,
+  mergeSettings
+} from "../defaults";
+import { I18n } from "../i18n/i18n";
+import type { RendererCallbacks } from "../renderer/renderer-callbacks";
+import { ViewerRenderer } from "../renderer/viewer-renderer";
+import { IndexedDbStorage } from "../storage/indexed-db-storage";
+import { ViewerStore } from "../store/store";
+import type {
+  LayoutMode,
+  Manga,
+  MangaPage,
+  MangaViewerInstance,
+  MangaViewerOptions,
+  ViewerEventHandler,
+  ViewerEventHandlersMap,
+  ViewerEventName,
+  ViewerSettings,
+  ViewerState
+} from "../types";
+import { AssetLoader } from "./asset-loader";
+import { EventEmitter } from "./event-emitter";
+
+export class MangaViewerCore implements MangaViewerInstance {
+  private store: ViewerStore;
+  private storage: IndexedDbStorage;
+  private assetLoader: AssetLoader;
+  private renderer: ViewerRenderer;
+  private i18n: I18n;
+  private events = new EventEmitter();
+  private unsubscribers: Array<() => void> = [];
+  private notificationTimers = new Map<string, number>();
+  private autoTimer?: number;
+  private mobileMediaQuery?: MediaQueryList;
+
+  constructor(
+    private container: HTMLElement,
+    options: MangaViewerOptions
+  ) {
+    const settings = mergeSettings(defaultSettings, {
+      ...options.settings,
+      locale: options.locale ?? options.settings?.locale ?? defaultSettings.locale
+    });
+
+    this.storage = new IndexedDbStorage(options.storage);
+    this.assetLoader = new AssetLoader();
+    this.i18n = new I18n(settings.locale, options.translations);
+    this.store = new ViewerStore(
+      createInitialState(options.manga, settings, options.initialPageIndex)
+    );
+
+    const callbacks: RendererCallbacks = {
+      goToPage: (pageIndex) => this.goToPage(pageIndex),
+      nextPage: () => this.nextPage(),
+      previousPage: () => this.previousPage(),
+      commitNextPage: () => this.commitNextPage(),
+      commitPreviousPage: () => this.commitPreviousPage(),
+      toggleOverlay: (force) => this.toggleOverlay(force),
+      toggleAutoPageTurn: () => this.toggleAutoPageTurn(),
+      updateSettings: (settingsUpdate) => {
+        void this.updateSettings(settingsUpdate);
+      },
+      setLayoutMode: (layoutMode) => void this.setLayoutMode(layoutMode),
+      setTheaterHeight: (heightPx) => this.setTheaterHeight(heightPx),
+      setPanel: (panel) => {
+        this.store.dispatch({ type: "setPanel", panel });
+      },
+      setZoom: (scale, panX, panY) =>
+        this.store.dispatch({ type: "setZoom", scale, panX, panY }),
+      setPan: (panX, panY) => this.store.dispatch({ type: "setPan", panX, panY }),
+      resetZoom: () => this.store.dispatch({ type: "resetZoom" })
+    };
+
+    this.renderer = new ViewerRenderer(
+      this.container,
+      callbacks,
+      this.assetLoader,
+      this.i18n,
+      options.className
+    );
+
+    for (const [eventName, handler] of Object.entries(
+      options.events ?? {}
+    ) as Array<[ViewerEventName, ViewerEventHandlersMap[ViewerEventName]]>) {
+      this.on(
+        eventName,
+        handler as ViewerEventHandler<typeof eventName>
+      );
+    }
+
+    this.unsubscribers.push(
+      this.store.subscribe((state, previous) => {
+        this.renderer.update(state);
+        this.afterStateChange(state, previous);
+      })
+    );
+
+    this.bindKeyboard();
+    this.bindViewportChange();
+    this.bootstrap();
+  }
+
+  destroy(): void {
+    window.clearInterval(this.autoTimer);
+    for (const timer of this.notificationTimers.values()) {
+      window.clearTimeout(timer);
+    }
+    this.notificationTimers.clear();
+    this.unsubscribers.forEach((unsubscribe) => unsubscribe());
+    this.assetLoader.revokeAll();
+    this.renderer.destroy();
+    this.events.emit("destroy", undefined);
+    this.events.clear();
+  }
+
+  async setManga(manga: Manga): Promise<void> {
+    const pageIndex = (await this.storage.getProgress(manga.id)) ?? 0;
+    this.store.dispatch({ type: "setManga", manga, pageIndex });
+  }
+
+  async setPages(pages: MangaPage[]): Promise<void> {
+    await this.setManga({
+      ...this.store.getState().manga,
+      pages
+    });
+  }
+
+  getState(): Readonly<ViewerState> {
+    return this.store.getState();
+  }
+
+  async updateSettings(settings: Partial<ViewerSettings>): Promise<void> {
+    this.store.dispatch({ type: "updateSettings", settings });
+    const nextSettings = this.store.getState().settings;
+    this.i18n.setLocale(nextSettings.locale);
+    await this.storage.saveSettings(nextSettings);
+    this.events.emit("settingsChange", { settings: nextSettings });
+  }
+
+  goToPage(pageIndex: number): void {
+    const before = this.store.getState().currentPageIndex;
+    this.store.dispatch({ type: "goToPage", pageIndex });
+    const after = this.store.getState().currentPageIndex;
+
+    if (before !== after) {
+      const state = this.store.getState();
+      void this.storage.saveProgress(state.manga.id, after);
+      this.events.emit("pageChange", {
+        pageIndex: after,
+        page: state.manga.pages[after]
+      });
+    }
+  }
+
+  nextPage(): void {
+    if (this.renderer.isAnimatingPageTurn()) {
+      return;
+    }
+
+    const state = this.store.getState();
+    const animated = this.renderer.animatePageTurn(state, "next", () =>
+      this.commitNextPage()
+    );
+
+    if (!animated) {
+      this.commitNextPage();
+    }
+  }
+
+  previousPage(): void {
+    if (this.renderer.isAnimatingPageTurn()) {
+      return;
+    }
+
+    const state = this.store.getState();
+    const animated = this.renderer.animatePageTurn(state, "previous", () =>
+      this.commitPreviousPage()
+    );
+
+    if (!animated) {
+      this.commitPreviousPage();
+    }
+  }
+
+  private commitNextPage(): void {
+    if (this.renderer.isMobileViewport()) {
+      this.goToPage(this.store.getState().currentPageIndex + 1);
+      return;
+    }
+
+    const current = this.store.getState().currentPageIndex;
+    this.store.dispatch({ type: "nextPage" });
+    this.emitPageChangeIfNeeded(current);
+  }
+
+  private commitPreviousPage(): void {
+    if (this.renderer.isMobileViewport()) {
+      this.goToPage(this.store.getState().currentPageIndex - 1);
+      return;
+    }
+
+    const current = this.store.getState().currentPageIndex;
+    this.store.dispatch({ type: "previousPage" });
+    this.emitPageChangeIfNeeded(current);
+  }
+
+  toggleOverlay(force?: boolean): void {
+    const current = this.store.getState().overlayVisible;
+    const visible = force ?? !current;
+    this.store.dispatch({ type: "setOverlayVisible", visible });
+  }
+
+  toggleAutoPageTurn(): void {
+    this.store.dispatch({ type: "toggleAutoPageTurn" });
+    this.syncAutoTimer();
+
+    const enabled = this.store.getState().autoPageTurnEnabled;
+    this.notify(this.i18n.t(enabled ? "autoplay.start" : "autoplay.stop"));
+  }
+
+  async toggleFullscreen(): Promise<void> {
+    const state = this.store.getState();
+
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+      await this.setLayoutMode("inline");
+      return;
+    }
+
+    await this.setLayoutMode(
+      state.layout.mode === "nativeFullscreen" ? "inline" : "nativeFullscreen"
+    );
+  }
+
+  on<T extends ViewerEventName>(
+    eventName: T,
+    handler: ViewerEventHandler<T>
+  ): () => void {
+    return this.events.on(eventName, handler);
+  }
+
+  private async bootstrap(): Promise<void> {
+    const savedSettings = await this.storage.getSettings();
+    const savedLayout = await this.storage.getLayout<{
+      mode?: LayoutMode;
+      theaterHeightPx?: number;
+    }>();
+    const mangaId = this.store.getState().manga.id;
+    const progress = await this.storage.getProgress(mangaId);
+
+    if (savedSettings) {
+      this.store.dispatch({ type: "updateSettings", settings: savedSettings });
+    }
+    if (savedLayout?.mode) {
+      this.store.dispatch({ type: "setLayoutMode", layoutMode: savedLayout.mode });
+    }
+    if (savedLayout?.theaterHeightPx) {
+      this.store.dispatch({
+        type: "setTheaterHeight",
+        heightPx: savedLayout.theaterHeightPx
+      });
+    }
+    if (typeof progress === "number") {
+      this.store.dispatch({ type: "goToPage", pageIndex: progress });
+    }
+
+    this.renderer.update(this.store.getState());
+    this.renderer.showSplash();
+    window.setTimeout(() => {
+      this.toggleOverlay(true);
+    }, 1550);
+    this.events.emit("ready", { manga: this.store.getState().manga });
+  }
+
+  private bindKeyboard(): void {
+    const element = this.renderer.getElement();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!this.shouldHandleKeyboardEvent(event)) {
+        return;
+      }
+
+      switch (event.key) {
+        case "ArrowLeft":
+          event.preventDefault();
+          this.moveFromKey("left");
+          break;
+        case "ArrowRight":
+          event.preventDefault();
+          this.moveFromKey("right");
+          break;
+        case " ":
+          event.preventDefault();
+          this.moveFromKey(event.shiftKey ? "right" : "left");
+          break;
+        case "a":
+        case "A":
+          event.preventDefault();
+          this.toggleAutoPageTurn();
+          break;
+        case "n":
+        case "N":
+          event.preventDefault();
+          void this.setLayoutMode("inline");
+          break;
+        case "w":
+        case "W":
+          event.preventDefault();
+          void this.setLayoutMode("theater");
+          break;
+        case "f":
+        case "F":
+          event.preventDefault();
+          void this.setLayoutMode("browserFullscreen");
+          break;
+        case "m":
+        case "M": {
+          event.preventDefault();
+          const currentPanel = this.store.getState().panel;
+          const menuOpen =
+            currentPanel === "menu" ||
+            currentPanel === "pages" ||
+            currentPanel === "shortcuts";
+          this.store.dispatch({
+            type: "setPanel",
+            panel: menuOpen ? "none" : "menu"
+          });
+          if (!menuOpen) {
+            this.toggleOverlay(true);
+          }
+          break;
+        }
+        case "p":
+        case "P":
+          event.preventDefault();
+          void this.updateSettings({
+            pageTurnMode:
+              this.store.getState().settings.pageTurnMode === "spread"
+                ? "single"
+                : "spread"
+          });
+          break;
+        case "s":
+        case "S": {
+          event.preventDefault();
+          const settingsOpen =
+            this.store.getState().panel === "settings";
+          this.store.dispatch({
+            type: "setPanel",
+            panel: settingsOpen ? "none" : "settings"
+          });
+          if (!settingsOpen) {
+            this.toggleOverlay(true);
+          }
+          break;
+        }
+        case "Escape":
+          event.preventDefault();
+          this.store.dispatch({ type: "setPanel", panel: "none" });
+          if (document.fullscreenElement) {
+            void document.exitFullscreen();
+          }
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    this.unsubscribers.push(() => window.removeEventListener("keydown", onKeyDown));
+  }
+
+  private shouldHandleKeyboardEvent(event: KeyboardEvent): boolean {
+    const target = event.target;
+    if (!(target instanceof Element)) {
+      return true;
+    }
+
+    return !Boolean(
+      target.closest("input, select, textarea, [contenteditable='true']")
+    );
+  }
+
+  private bindViewportChange(): void {
+    this.mobileMediaQuery = window.matchMedia("(max-width: 676px)");
+    const onChange = () => {
+      this.renderer.update(this.store.getState());
+    };
+
+    this.mobileMediaQuery.addEventListener("change", onChange);
+    this.unsubscribers.push(() =>
+      this.mobileMediaQuery?.removeEventListener("change", onChange)
+    );
+  }
+
+  private moveFromKey(side: "left" | "right"): void {
+    const direction = this.store.getState().settings.readingDirection;
+    if (direction === "rtl") {
+      side === "left" ? this.nextPage() : this.previousPage();
+    } else {
+      side === "left" ? this.previousPage() : this.nextPage();
+    }
+  }
+
+  private async setLayoutMode(layoutMode: LayoutMode): Promise<void> {
+    if (layoutMode === "nativeFullscreen") {
+      try {
+        await this.renderer.getElement().requestFullscreen();
+      } catch {
+        layoutMode = "browserFullscreen";
+      }
+    } else if (document.fullscreenElement) {
+      await document.exitFullscreen();
+    }
+
+    if (
+      layoutMode === "theater" &&
+      !this.store.getState().layout.theaterHeightPx
+    ) {
+      const currentHeight = this.renderer.getElement().offsetHeight;
+      if (currentHeight > 0) {
+        this.store.dispatch({
+          type: "setTheaterHeight",
+          heightPx: currentHeight
+        });
+      }
+    }
+
+    this.store.dispatch({ type: "setLayoutMode", layoutMode });
+    await this.storage.saveSettings(this.store.getState().settings);
+    await this.storage.saveLayout(this.store.getState().layout);
+    this.events.emit("layoutChange", { layoutMode });
+  }
+
+  private setTheaterHeight(heightPx: number): void {
+    this.store.dispatch({ type: "setTheaterHeight", heightPx });
+    void this.storage.saveLayout(this.store.getState().layout);
+  }
+
+  private afterStateChange(state: ViewerState, previous: ViewerState): void {
+    if (state.autoPageTurnEnabled !== previous.autoPageTurnEnabled) {
+      this.syncAutoTimer();
+    }
+  }
+
+  private syncAutoTimer(): void {
+    window.clearInterval(this.autoTimer);
+
+    if (!this.store.getState().autoPageTurnEnabled) {
+      return;
+    }
+
+    this.autoTimer = window.setInterval(() => {
+      const state = this.store.getState();
+      const step = getPageStep(state.settings, state.currentPageIndex);
+      if (state.currentPageIndex + step >= state.manga.pages.length) {
+        this.toggleAutoPageTurn();
+        return;
+      }
+      this.nextPage();
+    }, this.store.getState().settings.autoPageTurnIntervalMs);
+  }
+
+  private emitPageChangeIfNeeded(previousPageIndex: number): void {
+    const state = this.store.getState();
+    if (state.currentPageIndex === previousPageIndex) {
+      return;
+    }
+
+    void this.storage.saveProgress(state.manga.id, state.currentPageIndex);
+    this.events.emit("pageChange", {
+      pageIndex: state.currentPageIndex,
+      page: state.manga.pages[state.currentPageIndex]
+    });
+  }
+
+  private notify(
+    message: string,
+    tone: "info" | "success" | "error" = "info"
+  ): void {
+    for (const timer of this.notificationTimers.values()) {
+      window.clearTimeout(timer);
+    }
+    this.notificationTimers.clear();
+
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    this.store.dispatch({
+      type: "pushNotification",
+      notification: {
+        id,
+        message,
+        tone,
+        createdAt: Date.now()
+      }
+    });
+
+    const timer = window.setTimeout(() => {
+      this.store.dispatch({ type: "removeNotification", id });
+      this.notificationTimers.delete(id);
+    }, 3000);
+    this.notificationTimers.set(id, timer);
+  }
+}

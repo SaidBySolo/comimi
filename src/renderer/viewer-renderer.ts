@@ -1,0 +1,700 @@
+import { AssetLoader } from "../core/asset-loader";
+import { renderArrowButtons } from "../components/arrow-buttons";
+import { renderCenterMessage } from "../components/center-message";
+import { ControlsDock } from "../components/controls-dock";
+import { MenuPanel } from "../components/menu-panel";
+import { ViewModeSwitcher } from "../components/view-mode-switcher";
+import {
+  getAdjacentPageIndexes,
+  getDisplayedPageIndexes,
+  getPageGroupSide,
+  isSwipeToNext
+} from "../components/page-layout";
+import { PageStage } from "../components/page-stage";
+import { renderNotifications } from "../components/notifications";
+import { renderSplashScreen } from "../components/splash-screen";
+import { createViewerRoot } from "../components/viewer-root";
+import { I18n } from "../i18n/i18n";
+import { ensureViewerStyles } from "../styles/style-registry";
+import type { ViewerState } from "../types";
+import type { RendererCallbacks } from "./renderer-callbacks";
+
+interface DragStart {
+  x: number;
+  y: number;
+  panX: number;
+  panY: number;
+}
+
+const PAGE_TURN_ANIMATION_MS = 180;
+const SPLASH_DURATION_MS = 2000;
+
+export class ViewerRenderer {
+  private root: HTMLDivElement;
+  private cleanup: Array<() => void> = [];
+  private mouseStart?: DragStart;
+  private touchStart?: DragStart;
+  private pinchStart?: { distance: number; scale: number };
+  private pageStage: PageStage;
+  private pageTurnTimer?: number;
+  private splashRemoveTimer?: number;
+  private splash?: HTMLElement;
+  private isPageTurnAnimating = false;
+  private suppressNextClick = false;
+  private prevOverlayVisible = false;
+  private overlayApplyRaf?: number;
+  private menuPanel?: MenuPanel;
+  private viewModeSwitcher?: ViewModeSwitcher;
+  private controlsDock?: ControlsDock;
+  private resizeHandle?: HTMLDivElement;
+  private viewSizeObserver?: ResizeObserver;
+
+  constructor(
+    private container: HTMLElement,
+    private callbacks: RendererCallbacks,
+    private assetLoader: AssetLoader,
+    private i18n: I18n,
+    className?: string
+  ) {
+    ensureViewerStyles();
+    this.pageStage = new PageStage({
+      assetLoader: this.assetLoader,
+      i18n: this.i18n,
+      isMobileViewport: () => this.isMobileViewport()
+    });
+    this.root = createViewerRoot({ className });
+    this.container.replaceChildren(this.root);
+    this.observeViewSize();
+  }
+
+  private observeViewSize(): void {
+    const apply = () => {
+      this.root.style.setProperty(
+        "--view-width",
+        `${this.root.offsetWidth}px`
+      );
+      this.root.style.setProperty(
+        "--view-height",
+        `${this.root.offsetHeight}px`
+      );
+    };
+    apply();
+    if (typeof ResizeObserver !== "undefined") {
+      this.viewSizeObserver = new ResizeObserver(apply);
+      this.viewSizeObserver.observe(this.root);
+    } else {
+      window.addEventListener("resize", apply);
+      this.cleanup.push(() => window.removeEventListener("resize", apply));
+    }
+  }
+
+  update(state: ViewerState): void {
+    if (this.isPageTurnAnimating) {
+      return;
+    }
+
+    this.cleanup.forEach((clean) => clean());
+    this.cleanup = [];
+    this.i18n.setLocale(state.settings.locale);
+    this.root.dataset.layout = state.layout.mode;
+
+    if (state.layout.mode === "theater" && state.layout.theaterHeightPx) {
+      this.root.style.height = `${state.layout.theaterHeightPx}px`;
+    } else {
+      this.root.style.height = "";
+    }
+
+    const overlayChanged = this.prevOverlayVisible !== state.overlayVisible;
+    const renderState: ViewerState = overlayChanged
+      ? { ...state, overlayVisible: this.prevOverlayVisible }
+      : state;
+
+    if (!this.menuPanel) {
+      this.menuPanel = new MenuPanel(this.callbacks, this.i18n);
+    }
+    if (!this.viewModeSwitcher) {
+      this.viewModeSwitcher = new ViewModeSwitcher(this.callbacks, this.i18n);
+    }
+    if (!this.controlsDock) {
+      this.controlsDock = new ControlsDock(this.callbacks, this.i18n);
+    }
+    const stageEl = this.pageStage.getElement();
+    const menuPanelEl = this.menuPanel.getElement();
+    const viewModeSwitcherEl = this.viewModeSwitcher.getElement();
+    const controlsDockEl = this.controlsDock.getElement();
+
+    // Remove non-persistent children, keep persistent ones in DOM
+    Array.from(this.root.children).forEach((child) => {
+      if (
+        child !== stageEl &&
+        child !== menuPanelEl &&
+        child !== viewModeSwitcherEl &&
+        child !== controlsDockEl &&
+        child !== this.splash
+      ) {
+        child.remove();
+      }
+    });
+
+    if (stageEl.parentNode !== this.root) {
+      this.root.prepend(stageEl);
+    }
+    this.pageStage.update(state, this.isMobileViewport());
+    this.pageStage.snapTransform();
+
+    const newChildren: Node[] = [
+      renderCenterMessage(renderState, this.i18n),
+      renderArrowButtons({ state: renderState, callbacks: this.callbacks }),
+      renderNotifications(state)
+    ];
+
+    this.syncResizeHandle(state.layout.mode === "theater");
+
+    const reference = menuPanelEl.parentNode === this.root ? menuPanelEl : null;
+    if (reference) {
+      newChildren.forEach((child) => this.root.insertBefore(child, reference));
+    } else {
+      newChildren.forEach((child) => this.root.appendChild(child));
+      this.root.appendChild(menuPanelEl);
+    }
+
+    if (viewModeSwitcherEl.parentNode !== this.root) {
+      this.root.appendChild(viewModeSwitcherEl);
+    }
+    if (controlsDockEl.parentNode !== this.root) {
+      this.root.appendChild(controlsDockEl);
+    }
+
+    this.menuPanel.update(renderState);
+    this.viewModeSwitcher.update(renderState);
+    this.controlsDock.update(renderState, this.isMobileViewport());
+
+    if (this.splash && this.splash.parentNode !== this.root) {
+      this.root.append(this.splash);
+    }
+
+    this.bindGestures(state);
+
+    if (this.overlayApplyRaf !== undefined) {
+      cancelAnimationFrame(this.overlayApplyRaf);
+      this.overlayApplyRaf = undefined;
+    }
+
+    if (overlayChanged) {
+      const targetVisible = state.overlayVisible;
+      // Force sync layout so the browser commits the "from" state before flip.
+      void this.root.offsetWidth;
+      this.overlayApplyRaf = requestAnimationFrame(() => {
+        this.overlayApplyRaf = undefined;
+        this.applyOverlayVisibility(targetVisible);
+      });
+    }
+
+    this.prevOverlayVisible = state.overlayVisible;
+  }
+
+  private applyOverlayVisibility(visible: boolean): void {
+    const flag = String(visible);
+    this.root
+      .querySelectorAll<HTMLElement>(
+        ".comimi-arrows, .comimi-center-message, .comimi-menu-panel, .comimi-view-switcher, .comimi-controls-dock"
+      )
+      .forEach((element) => {
+        element.dataset.overlay = flag;
+      });
+  }
+
+  showSplash(): void {
+    if (this.splash) {
+      return;
+    }
+
+    this.splash = renderSplashScreen(this.i18n);
+    this.root.append(this.splash);
+    this.splashRemoveTimer = window.setTimeout(() => {
+      this.splash?.remove();
+      this.splash = undefined;
+    }, SPLASH_DURATION_MS);
+  }
+
+  destroy(): void {
+    window.clearTimeout(this.pageTurnTimer);
+    window.clearTimeout(this.splashRemoveTimer);
+    if (this.overlayApplyRaf !== undefined) {
+      cancelAnimationFrame(this.overlayApplyRaf);
+      this.overlayApplyRaf = undefined;
+    }
+    this.cleanup.forEach((clean) => clean());
+    this.cleanup = [];
+    this.viewSizeObserver?.disconnect();
+    this.viewSizeObserver = undefined;
+    this.resizeHandle?.remove();
+    this.resizeHandle = undefined;
+    this.root.remove();
+  }
+
+  getElement(): HTMLElement {
+    return this.root;
+  }
+
+  isAnimatingPageTurn(): boolean {
+    return this.isPageTurnAnimating;
+  }
+
+  animatePageTurn(
+    state: ViewerState,
+    direction: "previous" | "next",
+    onComplete: () => void
+  ): boolean {
+    window.clearTimeout(this.pageTurnTimer);
+
+    if (
+      !state.settings.pageTurnAnimation ||
+      this.isPageTurnAnimating ||
+      getAdjacentPageIndexes(state, direction, this.isMobileViewport()).length === 0
+    ) {
+      return false;
+    }
+
+    this.isPageTurnAnimating = true;
+    this.setStageDragOffset(this.getPageTurnTargetOffset(state, direction), true);
+    this.pageTurnTimer = window.setTimeout(() => {
+      this.isPageTurnAnimating = false;
+      onComplete();
+    }, PAGE_TURN_ANIMATION_MS);
+
+    return true;
+  }
+
+  isMobileViewport(): boolean {
+    return window.matchMedia("(max-width: 767px)").matches;
+  }
+
+  private clampPan(
+    panX: number,
+    panY: number,
+    scale: number,
+    state: ViewerState
+  ): { x: number; y: number } {
+    if (scale <= 1) {
+      return { x: 0, y: 0 };
+    }
+    const isMobile = this.isMobileViewport();
+    const indexes = getDisplayedPageIndexes(state, isMobile);
+    const isSpread = indexes.length > 1;
+    const slotWidth = isSpread
+      ? this.root.offsetWidth / 2
+      : this.root.offsetWidth;
+    const slotHeight = this.root.offsetHeight;
+    const maxX = (slotWidth * (scale - 1)) / 2;
+    const maxY = (slotHeight * (scale - 1)) / 2;
+    return {
+      x: Math.min(Math.max(panX, -maxX), maxX),
+      y: Math.min(Math.max(panY, -maxY), maxY)
+    };
+  }
+
+  private clampedZoom(scale: number, state: ViewerState): number {
+    return Math.min(
+      Math.max(scale, state.settings.zoom.min),
+      state.settings.zoom.max
+    );
+  }
+
+  private syncResizeHandle(needsHandle: boolean): void {
+    if (needsHandle) {
+      if (!this.resizeHandle) {
+        this.resizeHandle = this.createResizeHandle();
+      }
+      if (this.resizeHandle.parentNode !== this.container) {
+        this.container.appendChild(this.resizeHandle);
+      }
+    } else if (this.resizeHandle) {
+      this.resizeHandle.remove();
+    }
+  }
+
+  private createResizeHandle(): HTMLDivElement {
+    const handle = document.createElement("div");
+    handle.className = "comimi-resize-handle";
+    handle.setAttribute("role", "separator");
+    handle.setAttribute("aria-orientation", "horizontal");
+
+    let startY = 0;
+    let startHeight = 0;
+    let activePointerId: number | undefined;
+
+    const onMove = (event: PointerEvent) => {
+      if (event.pointerId !== activePointerId) return;
+      this.callbacks.setTheaterHeight(startHeight + event.clientY - startY);
+    };
+    const onUp = (event: PointerEvent) => {
+      if (event.pointerId !== activePointerId) return;
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+      activePointerId = undefined;
+    };
+
+    handle.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      activePointerId = event.pointerId;
+      startY = event.clientY;
+      startHeight = this.root.getBoundingClientRect().height;
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
+      window.addEventListener("pointercancel", onUp);
+    });
+
+    return handle;
+  }
+
+  private bindGestures(state: ViewerState): void {
+    const onClick = (event: MouseEvent) => {
+      if (this.suppressNextClick || this.isPageTurnAnimating) {
+        this.suppressNextClick = false;
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+
+      if (this.isInteractiveTarget(event.target)) {
+        return;
+      }
+
+      this.callbacks.toggleOverlay();
+    };
+    const onWheel = (event: WheelEvent) => {
+      if (this.isInteractiveTarget(event.target)) {
+        return;
+      }
+
+      if (!event.ctrlKey && !event.metaKey) {
+        return;
+      }
+
+      event.preventDefault();
+      const delta =
+        event.deltaY > 0 ? -state.settings.zoom.step : state.settings.zoom.step;
+      const nextScale = this.clampedZoom(state.zoomScale + delta, state);
+      const clampedPan = this.clampPan(
+        state.panX,
+        state.panY,
+        nextScale,
+        state
+      );
+      this.callbacks.setZoom(nextScale, clampedPan.x, clampedPan.y);
+    };
+    const onMouseDown = (event: MouseEvent) => {
+      if (this.isPageTurnAnimating || this.isInteractiveTarget(event.target)) {
+        return;
+      }
+
+      if (event.button !== 0) {
+        return;
+      }
+
+      this.mouseStart = {
+        x: event.clientX,
+        y: event.clientY,
+        panX: state.panX,
+        panY: state.panY
+      };
+    };
+    const onMouseMove = (event: MouseEvent) => {
+      if (!this.mouseStart) {
+        return;
+      }
+
+      event.preventDefault();
+      const deltaX = event.clientX - this.mouseStart.x;
+      const deltaY = event.clientY - this.mouseStart.y;
+      if (Math.abs(deltaX) > 6 || Math.abs(deltaY) > 6) {
+        this.suppressNextClick = true;
+      }
+
+      if (state.zoomScale <= 1) {
+        this.setStageDragOffset(
+          this.constrainDragOffset(deltaX, deltaY, state)
+        );
+        return;
+      }
+
+      const panX = this.mouseStart.panX + event.clientX - this.mouseStart.x;
+      const panY = this.mouseStart.panY + event.clientY - this.mouseStart.y;
+      const clamped = this.clampPan(panX, panY, state.zoomScale, state);
+      this.callbacks.setPan(clamped.x, clamped.y);
+    };
+    const onMouseUp = (event: MouseEvent) => {
+      if (!this.mouseStart) {
+        return;
+      }
+
+      const deltaX = event.clientX - this.mouseStart.x;
+      const deltaY = event.clientY - this.mouseStart.y;
+      this.handleSwipeEnd(deltaX, deltaY, state);
+      this.mouseStart = undefined;
+    };
+    const onTouchStart = (event: TouchEvent) => {
+      if (this.isPageTurnAnimating) {
+        return;
+      }
+
+      if (event.touches.length === 2) {
+        event.preventDefault();
+        this.touchStart = undefined;
+        this.pinchStart = {
+          distance: touchDistance(event),
+          scale: state.zoomScale
+        };
+        return;
+      }
+
+      if (this.isInteractiveTarget(event.target)) {
+        return;
+      }
+
+      const touch = event.touches[0];
+      if (!touch) {
+        return;
+      }
+
+      this.touchStart = {
+        x: touch.clientX,
+        y: touch.clientY,
+        panX: state.panX,
+        panY: state.panY
+      };
+    };
+    const onTouchMove = (event: TouchEvent) => {
+      if (this.pinchStart && event.touches.length === 2) {
+        event.preventDefault();
+        const requested =
+          this.pinchStart.scale *
+          (touchDistance(event) / this.pinchStart.distance);
+        const nextScale = this.clampedZoom(requested, state);
+        const clampedPan = this.clampPan(
+          state.panX,
+          state.panY,
+          nextScale,
+          state
+        );
+        this.callbacks.setZoom(nextScale, clampedPan.x, clampedPan.y);
+        return;
+      }
+
+      if (this.isInteractiveTarget(event.target)) {
+        return;
+      }
+
+      const touch = event.touches[0];
+      if (!touch || !this.touchStart) {
+        return;
+      }
+
+      event.preventDefault();
+      const deltaX = touch.clientX - this.touchStart.x;
+      const deltaY = touch.clientY - this.touchStart.y;
+      if (Math.abs(deltaX) > 6 || Math.abs(deltaY) > 6) {
+        this.suppressNextClick = true;
+      }
+
+      if (state.zoomScale <= 1) {
+        this.setStageDragOffset(
+          this.constrainDragOffset(deltaX, deltaY, state)
+        );
+        return;
+      }
+
+      const panX = this.touchStart.panX + touch.clientX - this.touchStart.x;
+      const panY = this.touchStart.panY + touch.clientY - this.touchStart.y;
+      const clamped = this.clampPan(panX, panY, state.zoomScale, state);
+      this.callbacks.setPan(clamped.x, clamped.y);
+    };
+    const onTouchEnd = (event: TouchEvent) => {
+      if (event.touches.length < 2) {
+        this.pinchStart = undefined;
+      }
+
+      const touch = event.changedTouches[0];
+      if (!touch || !this.touchStart) {
+        this.touchStart = undefined;
+        return;
+      }
+
+      const deltaX = touch.clientX - this.touchStart.x;
+      const deltaY = touch.clientY - this.touchStart.y;
+      this.handleSwipeEnd(deltaX, deltaY, state);
+      this.touchStart = undefined;
+    };
+    const onDoubleClick = (event: MouseEvent) => {
+      if (this.isInteractiveTarget(event.target)) {
+        return;
+      }
+
+      state.zoomScale > 1
+        ? this.callbacks.resetZoom()
+        : this.callbacks.setZoom(2);
+    };
+
+    const onCaptureClick = (event: MouseEvent) => {
+      if (this.suppressNextClick || this.isPageTurnAnimating) return;
+      if (state.panel !== "settings") return;
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest(".comimi-settings")) return;
+      this.callbacks.setPanel("none");
+    };
+
+    this.root.addEventListener("click", onCaptureClick, true);
+    this.root.addEventListener("click", onClick);
+    this.root.addEventListener("wheel", onWheel, { passive: false });
+    this.root.addEventListener("mousedown", onMouseDown);
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+    this.root.addEventListener("touchstart", onTouchStart, { passive: false });
+    this.root.addEventListener("touchmove", onTouchMove, { passive: false });
+    this.root.addEventListener("touchend", onTouchEnd);
+    this.root.addEventListener("dblclick", onDoubleClick);
+
+    this.cleanup.push(
+      () => this.root.removeEventListener("click", onCaptureClick, true),
+      () => this.root.removeEventListener("click", onClick),
+      () => this.root.removeEventListener("wheel", onWheel),
+      () => this.root.removeEventListener("mousedown", onMouseDown),
+      () => window.removeEventListener("mousemove", onMouseMove),
+      () => window.removeEventListener("mouseup", onMouseUp),
+      () => this.root.removeEventListener("touchstart", onTouchStart),
+      () => this.root.removeEventListener("touchmove", onTouchMove),
+      () => this.root.removeEventListener("touchend", onTouchEnd),
+      () => this.root.removeEventListener("dblclick", onDoubleClick)
+    );
+  }
+
+  private handleSwipeEnd(
+    deltaX: number,
+    deltaY: number,
+    state: ViewerState
+  ): void {
+    window.clearTimeout(this.pageTurnTimer);
+
+    const shouldPage =
+      state.zoomScale <= 1 &&
+      Math.abs(deltaX) > 64 &&
+      Math.abs(deltaX) > Math.abs(deltaY);
+
+    if (!shouldPage) {
+      this.setStageDragOffset(0, true);
+      return;
+    }
+
+    const direction = isSwipeToNext(deltaX, state.settings.readingDirection)
+      ? "next"
+      : "previous";
+    const hasAdjacentPage =
+      getAdjacentPageIndexes(state, direction, this.isMobileViewport()).length >
+      0;
+
+    if (!hasAdjacentPage) {
+      this.setStageDragOffset(0, true);
+      return;
+    }
+
+    if (!this.requestPageTurn(state, direction)) {
+      direction === "next"
+        ? this.callbacks.commitNextPage()
+        : this.callbacks.commitPreviousPage();
+    }
+  }
+
+  private requestPageTurn(
+    state: ViewerState,
+    direction: "previous" | "next"
+  ): boolean {
+    return this.animatePageTurn(state, direction, () => {
+      direction === "next"
+        ? this.callbacks.commitNextPage()
+        : this.callbacks.commitPreviousPage();
+    });
+  }
+
+  private constrainDragOffset(
+    deltaX: number,
+    deltaY: number,
+    state: ViewerState
+  ): number {
+    if (Math.abs(deltaY) > Math.abs(deltaX)) {
+      return 0;
+    }
+
+    const isDraggingToNext = isSwipeToNext(
+      deltaX,
+      state.settings.readingDirection
+    );
+    const adjacentDirection = isDraggingToNext ? "next" : "previous";
+    const hasAdjacentPage =
+      getAdjacentPageIndexes(state, adjacentDirection, this.isMobileViewport())
+        .length > 0;
+
+    if (!hasAdjacentPage) {
+      return this.applyEdgeResistance(deltaX);
+    }
+
+    return deltaX;
+  }
+
+  private applyEdgeResistance(deltaX: number): number {
+    const direction = Math.sign(deltaX);
+    const distance = Math.abs(deltaX);
+    const viewportWidth = Math.max(this.root.clientWidth, 1);
+    const maxPull = Math.min(viewportWidth * 0.22, 140);
+    const resisted = maxPull * (1 - Math.exp(-distance / maxPull));
+
+    return direction * resisted;
+  }
+
+  private setStageDragOffset(offsetX: number, animate = false): void {
+    this.pageStage.setDragOffset(offsetX, animate);
+  }
+
+  private getPageTurnTargetOffset(
+    state: ViewerState,
+    direction: "previous" | "next"
+  ): number {
+    const side = getPageGroupSide(state, direction);
+    return side === "left" ? this.root.clientWidth : -this.root.clientWidth;
+  }
+
+  private isInteractiveTarget(target: EventTarget | null): boolean {
+    if (!(target instanceof Element)) {
+      return false;
+    }
+
+    return Boolean(
+      target.closest(
+        [
+          ".comimi-arrow-button",
+          ".comimi-view-switcher",
+          ".comimi-controls-dock",
+          ".comimi-menu-panel",
+          ".comimi-settings-panel",
+          "button",
+          "input",
+          "select",
+          "textarea",
+          "a",
+          "iframe"
+        ].join(",")
+      )
+    );
+  }
+}
+
+function touchDistance(event: TouchEvent): number {
+  const [a, b] = Array.from(event.touches);
+  if (!a || !b) {
+    return 1;
+  }
+
+  return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+}
