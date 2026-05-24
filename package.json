@@ -1,7 +1,7 @@
 {
   "name": "@yui540/comimi",
   "version": "0.1.0",
-  "description": "Framework-agnostic TypeScript manga viewer for the browser.",
+  "description": "Open-source comic reader library for JS/TS",
   "keywords": [
     "manga",
     "comic",
