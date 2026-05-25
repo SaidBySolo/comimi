@@ -2,9 +2,11 @@
 
 ![comimi バナー画像](assets/banner.png)
 
-comimiは、TypeScript/JavaScript向けの漫画ビューワーライブラリです。
+comimiは、Webサイトに漫画ビューワーを組み込むことができるTypeScript/JavaScriptライブラリです。
 
 ReactなどのUIライブラリに依存していないため、単体で動作します。
+
+https://github.com/user-attachments/assets/3e37b9fb-6381-4f43-9b27-7ae8056a1905
 
 [yui540.com/comimi](https://yui540.com/comimi)
 
