@@ -31,6 +31,7 @@
   "shortcut.moveRight": "Move right",
   "shortcut.autoPageTurnLabel": "Auto play",
   "shortcut.pageModeToggle": "Toggle spread",
+  "shortcut.overlayToggle": "Toggle overlay",
   "seek.previewAlt": "Preview of page {{page}}",
   "loading": "Loading",
   "error.pageRequestFailed": "Request failed for page {{page}}"

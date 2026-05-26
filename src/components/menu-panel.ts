@@ -272,6 +272,7 @@ export class MenuPanel {
       this.shortcutSection(
         "shortcut.section.general",
         [
+          [["O"], "shortcut.overlayToggle"],
           [["M"], "overlay.menu"],
           [["P"], "shortcut.pageModeToggle"],
           [["S"], "overlay.settings"]

@@ -343,6 +343,11 @@ export class MangaViewerCore implements MangaViewerInstance {
                 : "spread"
           });
           break;
+        case "o":
+        case "O":
+          event.preventDefault();
+          this.toggleOverlay();
+          break;
         case "s":
         case "S": {
           event.preventDefault();

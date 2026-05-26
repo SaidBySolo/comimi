@@ -31,6 +31,7 @@
   "shortcut.moveRight": "右に移動",
   "shortcut.autoPageTurnLabel": "自動再生",
   "shortcut.pageModeToggle": "見開き切り替え",
+  "shortcut.overlayToggle": "オーバーレイ切り替え",
   "seek.previewAlt": "{{page}}ページのプレビュー",
   "loading": "読み込み中",
   "error.pageRequestFailed": "{{page}}ページのリクエストに失敗しました"
