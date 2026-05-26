@@ -78,7 +78,7 @@ interface MangaViewerInstance {
 interface MangaViewerOptions {
   manga: Manga;
   initialPageIndex?: number;
-  locale?: string;          // "ja" | "en"、または独自キー（translations と併用）
+  locale?: string;          // "ja" | "en" | "zh-CN" | "ko" | "th" | "id"、または独自キー
   translations?: TranslationMap;
   settings?: Partial<ViewerSettings>;
   storage?: { enabled?: boolean; databaseName?: string };
@@ -90,6 +90,11 @@ interface MangaViewerOptions {
     layoutChange: (e: { layoutMode: LayoutMode }) => void;
     destroy: () => void;
   }>;
+  resolvePageSrc?: (ctx: {
+    page: ImagePage;
+    pageIndex: number;
+    isSpread: boolean;
+  }) => string | Promise<string>;
 }
 ```
 
@@ -132,6 +137,7 @@ interface HtmlPage {
 | `layoutMode` | `"inline"` | `"inline"`, `"wide"`, `"browserFullscreen"`, `"nativeFullscreen"` |
 | `autoPageTurnIntervalMs` | `5000` | 自動再生の間隔 (ms) |
 | `pageTurnAnimation` | `true` | ページめくり時のスライドアニメ |
+| `backgroundColor` | `"white"` | `"white"` / `"black"`（ビューワー本体の背景色） |
 | `zoom.min` / `.max` / `.step` | `1` / `4` / `0.25` | ズームの範囲とステップ |
 
 ## レイアウトモード
@@ -152,22 +158,21 @@ interface HtmlPage {
 | `←` / `Space` | 左に移動（`readingDirection` に応じて前/次ページ） |
 | `→` / `Shift+Space` | 右に移動 |
 | `A` | 自動再生のトグル |
-| `N` | レイアウト: 標準 (inline) |
+| `N` / `Esc` | レイアウト: 標準 (inline) |
 | `W` | レイアウト: ワイド (wide) |
 | `F` | レイアウト: 全画面 (browserFullscreen) |
 | `P` | 1ページ ↔ 見開きの切替 |
 | `M` | メニューパネルのトグル |
+| `O` | オーバーレイ表示のトグル |
 | `S` | 設定パネルのトグル |
-| `Escape` | 開いているパネルを閉じる / フルスクリーンを解除 |
 
 ## ジェスチャー
 
-- 背景クリック / タップ: オーバーレイの表示切替
-- 左右端のクリック: 前 / 次ページ（`readingDirection` に応じて向きが変わる）
-- スワイプ: ページ移動。端では弾性的に抵抗あり
+- 中央 60% のクリック / タップ: オーバーレイの表示切替
+- 左 20% / 右 20% のクリック / タップ（オーバーレイ閉時のみ）: 前 / 次ページ（`readingDirection` に応じて向きが変わる）
+- スワイプ: ページ移動（しきい値 40px、横方向優先）
 - ピンチ: ズーム（`zoom.min`〜`zoom.max` でクランプ）
 - ズーム中のドラッグ: パン（ページの範囲内にクランプ）
-- ダブルクリック / ダブルタップ: 1x ↔ 2x の切替
 
 ## 永続化 (IndexedDB)
 
@@ -181,7 +186,7 @@ interface HtmlPage {
 
 ## i18n
 
-ビルトインのロケールは `ja` と `en` です。`translations` オプションでキーを上書き／追加できます。
+ビルトインのロケールは `ja` / `en` / `zh-CN` / `ko` / `th` / `id` です。`translations` オプションでキーを上書き／追加できます。
 
 ```ts
 createMangaViewer(container, {
@@ -196,6 +201,74 @@ createMangaViewer(container, {
 ```
 
 全キーは `locales/ja.json` を参照してください。未定義キーは `ja` → キー文字列自体、の順でフォールバックします。
+
+## ページソースの解決（DRM / 認証付き取得）
+
+`resolvePageSrc` オプションを渡すと、各ページ画像の `src` を確定する直前にあなたの関数が呼ばれ、戻り値の文字列が `<img>` の `src` に使われます。Data URL / Blob URL / 通常 URL のいずれも返せます。
+
+```ts
+type PageSrcResolver = (ctx: {
+  page: ImagePage;
+  pageIndex: number;
+  isSpread: boolean;
+}) => string | Promise<string>;
+```
+
+- 未指定: 既存どおりそのまま `page.src` を使用（パフォーマンス影響なし）
+- 指定: 解決完了までローディングアイコン表示、reject 時は error-icon
+- 解決済みの結果は `page.id` 単位でキャッシュされ、同じページの再表示で再呼び出しは走りません
+
+### 例: 暗号化バイナリの復号 → Blob URL
+
+```ts
+const blobUrls = new Map<string, string>();
+
+createMangaViewer(container, {
+  manga,
+  resolvePageSrc: async ({ page }) => {
+    if (blobUrls.has(page.id)) return blobUrls.get(page.id)!;
+
+    const res = await fetch(page.src, { credentials: "include" });
+    const encrypted = await res.arrayBuffer();
+    const decrypted = await decrypt(encrypted); // 利用者独自
+    const blob = new Blob([decrypted], { type: "image/webp" });
+    const url = URL.createObjectURL(blob);
+    blobUrls.set(page.id, url);
+    return url;
+  }
+});
+
+// 不要になったら自前で revoke
+window.addEventListener("beforeunload", () => {
+  for (const url of blobUrls.values()) URL.revokeObjectURL(url);
+});
+```
+
+### 例: 認証トークン付き fetch → Data URL
+
+```ts
+createMangaViewer(container, {
+  manga,
+  resolvePageSrc: async ({ page }) => {
+    const res = await fetch(page.src, {
+      headers: { Authorization: `Bearer ${getToken()}` }
+    });
+    const blob = await res.blob();
+    return await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(blob);
+    });
+  }
+});
+```
+
+### 注意点
+
+- **Blob URL の revoke はライブラリ側で行いません。** 利用側で自前管理してください
+- 解決結果は `manga.id + page.id` 単位でキャッシュされるので、`isSpread` が後から変わっても再解決は走りません。レイアウトに応じて解像度を変えたい場合は、利用側で別キーで管理してください
+- CORS: 通常 URL を返す場合は元の `<img>` 経路と同じ制約
 
 ## イベント
 
