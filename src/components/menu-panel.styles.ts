@@ -226,6 +226,21 @@ export const menuPanelStyles = `
   outline: 3px solid #e0e0e0;
 }
 
+.comimi-page-list-thumb-html {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 8px;
+  text-align: center;
+  color: #aaa;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
 .comimi-page-list-thumb img {
   display: block;
   width: 100%;

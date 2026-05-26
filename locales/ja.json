@@ -27,6 +27,7 @@
   "menu.openShortcuts": "キーボードショートカット",
   "menu.openPages": "ページ一覧",
   "menu.back": "もどる",
+  "pageList.htmlContent": "HTMLコンテンツ",
   "shortcut.section.page": "ページ移動",
   "shortcut.section.viewMode": "表示モード",
   "shortcut.section.general": "全般",

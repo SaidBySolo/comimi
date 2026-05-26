@@ -27,6 +27,7 @@
   "menu.openShortcuts": "키보드 단축키",
   "menu.openPages": "페이지 목록",
   "menu.back": "뒤로",
+  "pageList.htmlContent": "HTML 콘텐츠",
   "shortcut.section.page": "페이지 이동",
   "shortcut.section.viewMode": "표시 모드",
   "shortcut.section.general": "일반",

@@ -27,6 +27,7 @@
   "menu.openShortcuts": "Keyboard shortcuts",
   "menu.openPages": "Page list",
   "menu.back": "Back",
+  "pageList.htmlContent": "HTML content",
   "shortcut.section.page": "Page navigation",
   "shortcut.section.viewMode": "View mode",
   "shortcut.section.general": "General",

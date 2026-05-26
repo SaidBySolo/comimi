@@ -118,7 +118,7 @@ export class MenuPanel {
   }
 
   private refreshPageList(state: ViewerState): void {
-    const key = `${state.manga.id}:${state.manga.pages.length}`;
+    const key = `${state.settings.locale}:${state.manga.id}:${state.manga.pages.length}`;
     if (this.pageListCacheKey === key) {
       return;
     }
@@ -146,6 +146,11 @@ export class MenuPanel {
         image.draggable = false;
         image.src = page.thumbnailSrc ?? page.src;
         thumb.append(image);
+      } else if (page.type === "html") {
+        const placeholder = document.createElement("span");
+        placeholder.className = "comimi-page-list-thumb-html";
+        placeholder.textContent = this.i18n.t("pageList.htmlContent");
+        thumb.append(placeholder);
       }
 
       const text = document.createElement("span");

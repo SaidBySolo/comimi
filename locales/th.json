@@ -27,6 +27,7 @@
   "menu.openShortcuts": "คีย์ลัด",
   "menu.openPages": "รายการหน้า",
   "menu.back": "ย้อนกลับ",
+  "pageList.htmlContent": "เนื้อหา HTML",
   "shortcut.section.page": "การเลื่อนหน้า",
   "shortcut.section.viewMode": "โหมดการแสดงผล",
   "shortcut.section.general": "ทั่วไป",
