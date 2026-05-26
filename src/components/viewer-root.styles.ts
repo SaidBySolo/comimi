@@ -23,6 +23,7 @@ export const viewerRootStyles = `
   box-shadow: 0 0 16px 0 rgba(0, 0, 0, 0.06);
   overflow: hidden;
   user-select: none;
+  -webkit-tap-highlight-color: transparent;
   touch-action: none;
   transition:
     box-shadow 0.24s ease-out,
