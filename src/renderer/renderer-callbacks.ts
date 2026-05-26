@@ -10,7 +10,7 @@ export interface RendererCallbacks {
   toggleAutoPageTurn(): void;
   updateSettings(settings: Partial<ViewerSettings>): void;
   setLayoutMode(layoutMode: LayoutMode): void;
-  setTheaterHeight(heightPx: number): void;
+  setWideHeight(heightPx: number): void;
   setPanel(panel: ViewerState["panel"]): void;
   setZoom(scale: number, panX?: number, panY?: number): void;
   setPan(panX: number, panY: number): void;

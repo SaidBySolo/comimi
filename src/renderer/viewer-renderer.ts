@@ -99,8 +99,8 @@ export class ViewerRenderer {
     this.root.dataset.layout = state.layout.mode;
     this.root.dataset.bg = state.settings.backgroundColor;
 
-    if (state.layout.mode === "theater" && state.layout.theaterHeightPx) {
-      this.root.style.height = `${state.layout.theaterHeightPx}px`;
+    if (state.layout.mode === "wide" && state.layout.wideHeightPx) {
+      this.root.style.height = `${state.layout.wideHeightPx}px`;
     } else {
       this.root.style.height = "";
     }
@@ -149,7 +149,7 @@ export class ViewerRenderer {
       renderNotifications(state)
     ];
 
-    this.syncResizeHandle(state.layout.mode === "theater");
+    this.syncResizeHandle(state.layout.mode === "wide");
 
     const reference = menuPanelEl.parentNode === this.root ? menuPanelEl : null;
     if (reference) {
@@ -328,7 +328,7 @@ export class ViewerRenderer {
 
     const onMove = (event: PointerEvent) => {
       if (event.pointerId !== activePointerId) return;
-      this.callbacks.setTheaterHeight(startHeight + event.clientY - startY);
+      this.callbacks.setWideHeight(startHeight + event.clientY - startY);
     };
     const onUp = (event: PointerEvent) => {
       if (event.pointerId !== activePointerId) return;

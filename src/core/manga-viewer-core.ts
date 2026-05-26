@@ -64,7 +64,7 @@ export class MangaViewerCore implements MangaViewerInstance {
         void this.updateSettings(settingsUpdate);
       },
       setLayoutMode: (layoutMode) => void this.setLayoutMode(layoutMode),
-      setTheaterHeight: (heightPx) => this.setTheaterHeight(heightPx),
+      setWideHeight: (heightPx) => this.setWideHeight(heightPx),
       setPanel: (panel) => {
         this.store.dispatch({ type: "setPanel", panel });
       },
@@ -245,7 +245,8 @@ export class MangaViewerCore implements MangaViewerInstance {
   private async bootstrap(): Promise<void> {
     const savedSettings = await this.storage.getSettings();
     const savedLayout = await this.storage.getLayout<{
-      mode?: LayoutMode;
+      mode?: LayoutMode | "theater";
+      wideHeightPx?: number;
       theaterHeightPx?: number;
     }>();
     const mangaId = this.store.getState().manga.id;
@@ -255,12 +256,16 @@ export class MangaViewerCore implements MangaViewerInstance {
       this.store.dispatch({ type: "updateSettings", settings: savedSettings });
     }
     if (savedLayout?.mode) {
-      this.store.dispatch({ type: "setLayoutMode", layoutMode: savedLayout.mode });
+      const layoutMode: LayoutMode =
+        savedLayout.mode === "theater" ? "wide" : savedLayout.mode;
+      this.store.dispatch({ type: "setLayoutMode", layoutMode });
     }
-    if (savedLayout?.theaterHeightPx) {
+    const savedWideHeight =
+      savedLayout?.wideHeightPx ?? savedLayout?.theaterHeightPx;
+    if (savedWideHeight) {
       this.store.dispatch({
-        type: "setTheaterHeight",
-        heightPx: savedLayout.theaterHeightPx
+        type: "setWideHeight",
+        heightPx: savedWideHeight
       });
     }
     if (typeof progress === "number") {
@@ -309,7 +314,7 @@ export class MangaViewerCore implements MangaViewerInstance {
         case "w":
         case "W":
           event.preventDefault();
-          void this.setLayoutMode("theater");
+          void this.setLayoutMode("wide");
           break;
         case "f":
         case "F":
@@ -420,13 +425,13 @@ export class MangaViewerCore implements MangaViewerInstance {
     }
 
     if (
-      layoutMode === "theater" &&
-      !this.store.getState().layout.theaterHeightPx
+      layoutMode === "wide" &&
+      !this.store.getState().layout.wideHeightPx
     ) {
       const currentHeight = this.renderer.getElement().offsetHeight;
       if (currentHeight > 0) {
         this.store.dispatch({
-          type: "setTheaterHeight",
+          type: "setWideHeight",
           heightPx: currentHeight
         });
       }
@@ -438,8 +443,8 @@ export class MangaViewerCore implements MangaViewerInstance {
     this.events.emit("layoutChange", { layoutMode });
   }
 
-  private setTheaterHeight(heightPx: number): void {
-    this.store.dispatch({ type: "setTheaterHeight", heightPx });
+  private setWideHeight(heightPx: number): void {
+    this.store.dispatch({ type: "setWideHeight", heightPx });
     void this.storage.saveLayout(this.store.getState().layout);
   }
 

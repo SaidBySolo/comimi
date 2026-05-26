@@ -276,7 +276,7 @@ export class MenuPanel {
         "shortcut.section.viewMode",
         [
           [["N", "Esc"], "layout.inline"],
-          [["W"], "layout.theater"],
+          [["W"], "layout.wide"],
           [["F"], "layout.browserFullscreen"]
         ],
         true

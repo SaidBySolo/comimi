@@ -3,7 +3,7 @@ import type { MangaViewerInstance, MangaViewerOptions } from "./types";
 
 export function createMangaViewer(
   container: HTMLElement,
-  options: MangaViewerOptions
+  options: MangaViewerOptions,
 ): MangaViewerInstance {
   return new MangaViewerCore(container, options);
 }
@@ -23,5 +23,5 @@ export type {
   ViewerEventMap,
   ViewerEventName,
   ViewerSettings,
-  ViewerState
+  ViewerState,
 } from "./types";

@@ -33,7 +33,7 @@ export class ViewModeSwitcher {
 
     const modes: Array<[LayoutMode, string, IconName]> = [
       ["inline", "layout.inline", "default"],
-      ["theater", "layout.theater", "wide"],
+      ["wide", "layout.wide", "wide"],
       ["browserFullscreen", "layout.browserFullscreen", "fullscreen"]
     ];
 

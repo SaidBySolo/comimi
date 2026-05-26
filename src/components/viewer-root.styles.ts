@@ -45,7 +45,7 @@ export const viewerRootStyles = `
   --comimi-bg: #000;
 }
 
-.comimi-root[data-layout="theater"] {
+.comimi-root[data-layout="wide"] {
   width: 100%;
   max-width: none;
   aspect-ratio: auto;

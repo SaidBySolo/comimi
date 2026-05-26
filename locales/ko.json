@@ -11,7 +11,7 @@
   "pageMode.single": "한 페이지",
   "pageMode.spread": "양면 보기",
   "layout.inline": "표준",
-  "layout.theater": "와이드",
+  "layout.wide": "와이드",
   "layout.browserFullscreen": "전체 화면",
   "settings.title": "설정",
   "settings.cover": "표지 있음",

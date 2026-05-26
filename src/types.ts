@@ -3,7 +3,7 @@ export type PageTurnMode = "single" | "spread";
 export type BackgroundColor = "white" | "black";
 export type LayoutMode =
   | "inline"
-  | "theater"
+  | "wide"
   | "browserFullscreen"
   | "nativeFullscreen";
 
@@ -73,7 +73,7 @@ export interface ViewerState {
   settings: ViewerSettings;
   layout: {
     mode: LayoutMode;
-    theaterHeightPx?: number;
+    wideHeightPx?: number;
   };
   notifications: ViewerNotification[];
   panel: "none" | "settings" | "menu" | "pages" | "shortcuts";
@@ -138,7 +138,7 @@ export type ViewerAction =
   | { type: "toggleAutoPageTurn" }
   | { type: "updateSettings"; settings: Partial<ViewerSettings> }
   | { type: "setLayoutMode"; layoutMode: LayoutMode }
-  | { type: "setTheaterHeight"; heightPx: number }
+  | { type: "setWideHeight"; heightPx: number }
   | { type: "setZoom"; scale: number; panX?: number; panY?: number }
   | { type: "setPan"; panX: number; panY: number }
   | { type: "resetZoom" }

@@ -90,12 +90,12 @@ export function reducer(state: ViewerState, action: ViewerAction): ViewerState {
         settings: { layoutMode: action.layoutMode }
       });
 
-    case "setTheaterHeight":
+    case "setWideHeight":
       return {
         ...state,
         layout: {
           ...state.layout,
-          theaterHeightPx: Math.max(240, Math.round(action.heightPx))
+          wideHeightPx: Math.max(240, Math.round(action.heightPx))
         }
       };
 

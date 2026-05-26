@@ -129,7 +129,7 @@ interface HtmlPage {
 | `hasCover` | `true` | 表紙ありモード（見開き時、1ページ目を単独表示） |
 | `readingDirection` | `"rtl"` | `"rtl"`（右→左、日本語漫画）/ `"ltr"` |
 | `pageTurnMode` | `"single"` | `"single"` / `"spread"`（2ページ見開き） |
-| `layoutMode` | `"inline"` | `"inline"`, `"theater"`, `"browserFullscreen"`, `"nativeFullscreen"` |
+| `layoutMode` | `"inline"` | `"inline"`, `"wide"`, `"browserFullscreen"`, `"nativeFullscreen"` |
 | `autoPageTurnIntervalMs` | `5000` | 自動再生の間隔 (ms) |
 | `pageTurnAnimation` | `true` | ページめくり時のスライドアニメ |
 | `zoom.min` / `.max` / `.step` | `1` / `4` / `0.25` | ズームの範囲とステップ |
@@ -139,7 +139,7 @@ interface HtmlPage {
 | モード | 挙動 |
 |---|---|
 | `inline` | 親要素内に収まる（デスクトップ max 900px / モバイル max 500px）。アスペクト比固定・角丸・薄影あり |
-| `theater` | 横幅100%、下のハンドルをドラッグして高さ可変 |
+| `wide` | 横幅100%、下のハンドルをドラッグして高さ可変 |
 | `browserFullscreen` | `position: fixed; inset: 0` — Fullscreen API を使わずブラウザいっぱいに表示 |
 | `nativeFullscreen` | Fullscreen API を使用。失敗時は `browserFullscreen` にフォールバック |
 
@@ -153,7 +153,7 @@ interface HtmlPage {
 | `→` / `Shift+Space` | 右に移動 |
 | `A` | 自動再生のトグル |
 | `N` | レイアウト: 標準 (inline) |
-| `W` | レイアウト: ワイド (theater) |
+| `W` | レイアウト: ワイド (wide) |
 | `F` | レイアウト: 全画面 (browserFullscreen) |
 | `P` | 1ページ ↔ 見開きの切替 |
 | `M` | メニューパネルのトグル |
@@ -174,7 +174,7 @@ interface HtmlPage {
 `storage.enabled` を `false` にしない限り、`indexedDB` が利用可能な環境では以下を自動で保存します。
 
 - 全体設定（locale, readingDirection, hasCover, pageTurnMode, animation, autoPageTurnIntervalMs）
-- 現在のレイアウトモードと theater の高さ
+- 現在のレイアウトモードと wide の高さ
 - 漫画ごとの現在ページ（`manga.id` をキーに保存）
 
 データベース名は既定で `manga-viewer`。`storage.databaseName` で上書きできます。

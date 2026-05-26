@@ -11,7 +11,7 @@
   "pageMode.single": "Single",
   "pageMode.spread": "Spread",
   "layout.inline": "Standard",
-  "layout.theater": "Wide",
+  "layout.wide": "Wide",
   "layout.browserFullscreen": "Fullscreen",
   "settings.title": "Settings",
   "settings.cover": "Has cover",

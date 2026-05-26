@@ -11,7 +11,7 @@
   "pageMode.single": "1ページ",
   "pageMode.spread": "見開き",
   "layout.inline": "標準",
-  "layout.theater": "ワイド",
+  "layout.wide": "ワイド",
   "layout.browserFullscreen": "全画面",
   "settings.title": "設定",
   "settings.cover": "表紙あり",
