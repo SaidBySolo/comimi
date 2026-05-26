@@ -95,6 +95,7 @@ interface MangaViewerOptions {
     pageIndex: number;
     isSpread: boolean;
   }) => string | Promise<string>;
+  lockLayoutMode?: boolean;
 }
 ```
 
@@ -148,6 +149,26 @@ interface HtmlPage {
 | `wide` | 横幅100%、下のハンドルをドラッグして高さ可変 |
 | `browserFullscreen` | `position: fixed; inset: 0` — Fullscreen API を使わずブラウザいっぱいに表示 |
 | `nativeFullscreen` | Fullscreen API を使用。失敗時は `browserFullscreen` にフォールバック |
+
+### レイアウトモードを固定する
+
+`lockLayoutMode: true` を渡すと、`settings.layoutMode` で指定したモードに固定されます。
+
+- 表示モード切替の UI（コントロールドックの switcher）を非表示
+- メニュー > キーボードショートカット一覧から「表示モード」セクションを非表示
+- キーボードの `N` / `W` / `F` / `Esc` のレイアウト変更系を無効化
+- `viewer.toggleFullscreen()` / `updateSettings({ layoutMode })` も noop
+- IndexedDB に保存された前回の `layoutMode` も無視され、必ず `settings.layoutMode` が適用される
+
+例: 全画面で固定（DRM ビューワー組み込みや単機能ページ向け）
+
+```ts
+createMangaViewer(container, {
+  manga,
+  settings: { layoutMode: "browserFullscreen" },
+  lockLayoutMode: true
+});
+```
 
 ## キーボードショートカット
 

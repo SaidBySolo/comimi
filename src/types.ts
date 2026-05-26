@@ -94,6 +94,7 @@ export interface MangaViewerOptions {
   className?: string;
   events?: Partial<ViewerEventHandlersMap>;
   resolvePageSrc?: PageSrcResolver;
+  lockLayoutMode?: boolean;
 }
 
 export interface PageSrcContext {

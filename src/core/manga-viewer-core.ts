@@ -35,6 +35,7 @@ export class MangaViewerCore implements MangaViewerInstance {
   private notificationTimers = new Map<string, number>();
   private autoTimer?: number;
   private mobileMediaQuery?: MediaQueryList;
+  private lockLayoutMode = false;
 
   constructor(
     private container: HTMLElement,
@@ -45,6 +46,7 @@ export class MangaViewerCore implements MangaViewerInstance {
       locale: options.locale ?? options.settings?.locale ?? defaultSettings.locale
     });
 
+    this.lockLayoutMode = options.lockLayoutMode ?? false;
     this.storage = new IndexedDbStorage(options.storage);
     this.assetLoader = new AssetLoader();
     this.i18n = new I18n(settings.locale, options.translations);
@@ -80,7 +82,8 @@ export class MangaViewerCore implements MangaViewerInstance {
       this.assetLoader,
       this.i18n,
       options.className,
-      options.resolvePageSrc
+      options.resolvePageSrc,
+      this.lockLayoutMode
     );
 
     for (const [eventName, handler] of Object.entries(
@@ -134,7 +137,12 @@ export class MangaViewerCore implements MangaViewerInstance {
   }
 
   async updateSettings(settings: Partial<ViewerSettings>): Promise<void> {
-    this.store.dispatch({ type: "updateSettings", settings });
+    let toApply = settings;
+    if (this.lockLayoutMode && "layoutMode" in settings) {
+      toApply = { ...settings };
+      delete toApply.layoutMode;
+    }
+    this.store.dispatch({ type: "updateSettings", settings: toApply });
     const nextSettings = this.store.getState().settings;
     this.i18n.setLocale(nextSettings.locale);
     await this.storage.saveSettings(nextSettings);
@@ -223,6 +231,7 @@ export class MangaViewerCore implements MangaViewerInstance {
   }
 
   async toggleFullscreen(): Promise<void> {
+    if (this.lockLayoutMode) return;
     const state = this.store.getState();
 
     if (document.fullscreenElement) {
@@ -254,9 +263,13 @@ export class MangaViewerCore implements MangaViewerInstance {
     const progress = await this.storage.getProgress(mangaId);
 
     if (savedSettings) {
-      this.store.dispatch({ type: "updateSettings", settings: savedSettings });
+      const settingsToApply: Partial<ViewerSettings> = { ...savedSettings };
+      if (this.lockLayoutMode) {
+        delete settingsToApply.layoutMode;
+      }
+      this.store.dispatch({ type: "updateSettings", settings: settingsToApply });
     }
-    if (savedLayout?.mode) {
+    if (!this.lockLayoutMode && savedLayout?.mode) {
       const layoutMode: LayoutMode =
         savedLayout.mode === "theater" ? "wide" : savedLayout.mode;
       this.store.dispatch({ type: "setLayoutMode", layoutMode });
@@ -309,16 +322,19 @@ export class MangaViewerCore implements MangaViewerInstance {
         case "n":
         case "N":
         case "Escape":
+          if (this.lockLayoutMode) break;
           event.preventDefault();
           void this.setLayoutMode("inline");
           break;
         case "w":
         case "W":
+          if (this.lockLayoutMode) break;
           event.preventDefault();
           void this.setLayoutMode("wide");
           break;
         case "f":
         case "F":
+          if (this.lockLayoutMode) break;
           event.preventDefault();
           void this.setLayoutMode("browserFullscreen");
           break;
@@ -415,6 +431,7 @@ export class MangaViewerCore implements MangaViewerInstance {
   }
 
   private async setLayoutMode(layoutMode: LayoutMode): Promise<void> {
+    if (this.lockLayoutMode) return;
     if (layoutMode === "nativeFullscreen") {
       try {
         await this.renderer.getElement().requestFullscreen();

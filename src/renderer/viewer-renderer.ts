@@ -55,7 +55,8 @@ export class ViewerRenderer {
     private assetLoader: AssetLoader,
     private i18n: I18n,
     className?: string,
-    resolvePageSrc?: PageSrcResolver
+    resolvePageSrc?: PageSrcResolver,
+    private lockLayoutMode = false
   ) {
     ensureViewerStyles();
     this.pageStage = new PageStage({
@@ -113,9 +114,11 @@ export class ViewerRenderer {
       : state;
 
     if (!this.menuPanel) {
-      this.menuPanel = new MenuPanel(this.callbacks, this.i18n);
+      this.menuPanel = new MenuPanel(this.callbacks, this.i18n, {
+        lockLayoutMode: this.lockLayoutMode
+      });
     }
-    if (!this.viewModeSwitcher) {
+    if (!this.viewModeSwitcher && !this.lockLayoutMode) {
       this.viewModeSwitcher = new ViewModeSwitcher(this.callbacks, this.i18n);
     }
     if (!this.controlsDock) {
@@ -123,7 +126,7 @@ export class ViewerRenderer {
     }
     const stageEl = this.pageStage.getElement();
     const menuPanelEl = this.menuPanel.getElement();
-    const viewModeSwitcherEl = this.viewModeSwitcher.getElement();
+    const viewModeSwitcherEl = this.viewModeSwitcher?.getElement();
     const controlsDockEl = this.controlsDock.getElement();
 
     // Remove non-persistent children, keep persistent ones in DOM
@@ -161,7 +164,7 @@ export class ViewerRenderer {
       this.root.appendChild(menuPanelEl);
     }
 
-    if (viewModeSwitcherEl.parentNode !== this.root) {
+    if (viewModeSwitcherEl && viewModeSwitcherEl.parentNode !== this.root) {
       this.root.appendChild(viewModeSwitcherEl);
     }
     if (controlsDockEl.parentNode !== this.root) {
@@ -169,7 +172,7 @@ export class ViewerRenderer {
     }
 
     this.menuPanel.update(renderState);
-    this.viewModeSwitcher.update(renderState);
+    this.viewModeSwitcher?.update(renderState);
     this.controlsDock.update(renderState, this.isMobileViewport());
 
     if (this.splash && this.splash.parentNode !== this.root) {

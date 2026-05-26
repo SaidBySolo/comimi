@@ -23,7 +23,8 @@ export class MenuPanel {
 
   constructor(
     private callbacks: RendererCallbacks,
-    private i18n: I18n
+    private i18n: I18n,
+    private options: { lockLayoutMode?: boolean } = {}
   ) {
     this.root = document.createElement("div");
     this.root.className = "comimi-menu-panel";
@@ -50,7 +51,7 @@ export class MenuPanel {
     [this.viewPageList, this.pageListInner] = this.buildPageListView();
 
     this.bottomEl.append(border, this.viewMenu, this.viewShortcut, this.viewPageList);
-    this.root.append(background, top, this.bottomEl, renderRabbitMascot());
+    this.root.append(background, renderRabbitMascot(), top, this.bottomEl);
   }
 
   getElement(): HTMLElement {
@@ -271,16 +272,24 @@ export class MenuPanel {
         [["←", "Space"], "shortcut.moveLeft"],
         [["→", "Space + Shift"], "shortcut.moveRight"],
         [["A"], "shortcut.autoPageTurnLabel"]
-      ]),
-      this.shortcutSection(
-        "shortcut.section.viewMode",
-        [
-          [["N", "Esc"], "layout.inline"],
-          [["W"], "layout.wide"],
-          [["F"], "layout.browserFullscreen"]
-        ],
-        true
-      ),
+      ])
+    );
+
+    if (!this.options.lockLayoutMode) {
+      grid.append(
+        this.shortcutSection(
+          "shortcut.section.viewMode",
+          [
+            [["N", "Esc"], "layout.inline"],
+            [["W"], "layout.wide"],
+            [["F"], "layout.browserFullscreen"]
+          ],
+          true
+        )
+      );
+    }
+
+    grid.append(
       this.shortcutSection(
         "shortcut.section.general",
         [
