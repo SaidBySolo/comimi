@@ -374,8 +374,8 @@ export class ViewerRenderer {
       if (!state.overlayVisible) {
         const rect = this.root.getBoundingClientRect();
         const ratio = (event.clientX - rect.left) / rect.width;
-        if (ratio < 0.2 || ratio >= 0.8) {
-          const side: "left" | "right" = ratio < 0.2 ? "left" : "right";
+        if (ratio < 0.3 || ratio >= 0.7) {
+          const side: "left" | "right" = ratio < 0.3 ? "left" : "right";
           const goNext =
             state.settings.readingDirection === "rtl"
               ? side === "left"
