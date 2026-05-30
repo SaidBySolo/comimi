@@ -21,7 +21,7 @@ export const centerMessageStyles = `
   background: rgba(255, 255, 255, 0.5);
   box-shadow: var(--comimi-shadow);
   backdrop-filter: blur(5px);
-  color: #bbb;
+  color: #999;
   font-size: 12px;
   font-weight: 400;
   line-height: 1.45;
