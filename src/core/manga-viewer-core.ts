@@ -475,14 +475,23 @@ export class MangaViewerCore implements MangaViewerInstance {
     }
 
     this.autoTimer = window.setInterval(() => {
-      const state = this.store.getState();
-      const step = getPageStep(state.settings, state.currentPageIndex);
-      if (state.currentPageIndex + step >= state.manga.pages.length) {
+      if (this.isAtLastPage()) {
         this.toggleAutoPageTurn();
         return;
       }
       this.commitNextPage();
+      if (this.isAtLastPage()) {
+        this.toggleAutoPageTurn();
+      }
     }, this.store.getState().settings.autoPageTurnIntervalMs);
+  }
+
+  private isAtLastPage(): boolean {
+    const state = this.store.getState();
+    const step = this.renderer.isMobileViewport()
+      ? 1
+      : getPageStep(state.settings, state.currentPageIndex);
+    return state.currentPageIndex + step >= state.manga.pages.length;
   }
 
   private emitPageChangeIfNeeded(previousPageIndex: number): void {
