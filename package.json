@@ -1,6 +1,6 @@
 {
   "name": "@yui540/comimi",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "Open-source comic reader library for JS/TS",
   "keywords": [
     "manga",
@@ -32,7 +32,8 @@
     "dev": "vite examples/preview --host 0.0.0.0",
     "build": "tsc --noEmit && vite build && tsc -p tsconfig.build.json",
     "preview": "vite preview examples/preview --host 0.0.0.0",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
   },
   "devDependencies": {
     "@vitejs/plugin-basic-ssl": "latest",
