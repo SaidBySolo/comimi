@@ -65,6 +65,10 @@ export const controlsDockStyles = `
   visibility: hidden;
 }
 
+.comimi-controls-dock[data-autoplay="true"] .comimi-seek-bar {
+  pointer-events: none;
+}
+
 /* --- Seek bar --------------------------------------------------------- */
 
 .comimi-seek {

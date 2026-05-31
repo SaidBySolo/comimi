@@ -91,6 +91,7 @@ export class ControlsDock {
       this.seekInput.value = String(state.currentPageIndex);
     }
     this.seekInput.dataset.direction = state.settings.readingDirection;
+    this.seekInput.disabled = state.autoPageTurnEnabled;
 
     // Autoplay
     this.autoplaySlider.dataset.active = String(state.autoPageTurnEnabled);
