@@ -340,13 +340,13 @@ export class MangaViewerCore implements MangaViewerInstance {
             currentPanel === "menu" ||
             currentPanel === "pages" ||
             currentPanel === "shortcuts";
+          // setPanel が panel!=="none" のとき overlayVisible を立てるため、
+          // ここで toggleOverlay は呼ばない（二重 dispatch で表示用 rAF が
+          // キャンセルされ、オーバーレイが表示されなくなる）。
           this.store.dispatch({
             type: "setPanel",
             panel: menuOpen ? "none" : "menu"
           });
-          if (!menuOpen) {
-            this.toggleOverlay(true);
-          }
           break;
         }
         case "p":
@@ -369,13 +369,11 @@ export class MangaViewerCore implements MangaViewerInstance {
           event.preventDefault();
           const settingsOpen =
             this.store.getState().panel === "settings";
+          // setPanel が overlayVisible を立てるため toggleOverlay は呼ばない。
           this.store.dispatch({
             type: "setPanel",
             panel: settingsOpen ? "none" : "settings"
           });
-          if (!settingsOpen) {
-            this.toggleOverlay(true);
-          }
           break;
         }
         case "Escape":
