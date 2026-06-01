@@ -90,6 +90,7 @@ export const pageStageStyles = `
 }
 
 .comimi-html-page {
+  position: relative;
   width: min(100%, 960px);
   height: min(100%, 680px);
   background: #fff;
