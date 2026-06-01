@@ -5,7 +5,7 @@ export const centerMessageStyles = `
   left: 50%;
   transform: translate(-50%, -50%);
   pointer-events: none;
-  z-index: 20;
+  z-index: 1;
   transition: opacity 0.3s linear;
 }
 

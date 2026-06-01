@@ -8,7 +8,7 @@ export const controlsDockStyles = `
   left: 24px;
   width: calc(100% - 48px);
   padding: 20px 24px;
-  z-index: 40;
+  z-index: 4;
   pointer-events: auto;
   transition:
     transform 0.6s var(--comimi-spring),

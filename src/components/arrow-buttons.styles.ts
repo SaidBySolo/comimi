@@ -3,7 +3,7 @@ export const arrowButtonsStyles = `
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 30;
+  z-index: 2;
 }
 
 .comimi-arrow-button {

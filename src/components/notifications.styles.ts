@@ -8,7 +8,7 @@ export const notificationsStyles = `
   row-gap: 8px;
   justify-items: center;
   pointer-events: none;
-  z-index: 35;
+  z-index: 3;
 }
 
 .comimi-toast {

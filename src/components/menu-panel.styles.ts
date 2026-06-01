@@ -4,7 +4,7 @@ export const menuPanelStyles = `
   top: 24px;
   left: 24px;
   width: 420px;
-  z-index: 45;
+  z-index: 5;
   pointer-events: auto;
   transition:
     transform 0.6s var(--comimi-spring),

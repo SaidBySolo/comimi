@@ -2,7 +2,7 @@ export const splashScreenStyles = `
 .comimi-splash {
   position: absolute;
   inset: 0;
-  z-index: 100;
+  z-index: 10;
   background-color: #e0e0e0;
   overflow: hidden;
   animation: comimi-splash-clip 1s cubic-bezier(0.82, 0.01, 0.48, 1.02) 1s both;
