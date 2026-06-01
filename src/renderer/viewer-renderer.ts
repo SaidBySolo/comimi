@@ -16,7 +16,12 @@ import { renderSplashScreen } from "../components/splash-screen";
 import { createViewerRoot } from "../components/viewer-root";
 import { I18n } from "../i18n/i18n";
 import { ensureViewerStyles } from "../styles/style-registry";
-import type { MascotOption, PageSrcResolver, ViewerState } from "../types";
+import type {
+  HideableControl,
+  MascotOption,
+  PageSrcResolver,
+  ViewerState
+} from "../types";
 import type { RendererCallbacks } from "./renderer-callbacks";
 
 interface DragStart {
@@ -61,7 +66,8 @@ export class ViewerRenderer {
     className?: string,
     resolvePageSrc?: PageSrcResolver,
     private lockLayoutMode = false,
-    private mascot?: MascotOption
+    private mascot?: MascotOption,
+    private hidden: ReadonlySet<HideableControl> = new Set()
   ) {
     ensureViewerStyles();
     this.pageStage = new PageStage({
@@ -130,11 +136,20 @@ export class ViewerRenderer {
         mascot: this.mascot
       });
     }
-    if (!this.viewModeSwitcher && !this.lockLayoutMode) {
+    if (
+      !this.viewModeSwitcher &&
+      !this.lockLayoutMode &&
+      !this.hidden.has("viewMode")
+    ) {
       this.viewModeSwitcher = new ViewModeSwitcher(this.callbacks, this.i18n);
     }
     if (!this.controlsDock) {
-      this.controlsDock = new ControlsDock(this.callbacks, this.i18n, this.mascot);
+      this.controlsDock = new ControlsDock(
+        this.callbacks,
+        this.i18n,
+        this.mascot,
+        this.hidden
+      );
     }
     if (!this.notifications) {
       this.notifications = new Notifications();

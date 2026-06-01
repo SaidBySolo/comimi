@@ -9,6 +9,7 @@ export function createMangaViewer(
 }
 
 export type {
+  HideableControl,
   HtmlPage,
   ImagePage,
   LayoutMode,

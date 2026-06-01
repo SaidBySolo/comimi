@@ -1,5 +1,10 @@
 import { I18n } from "../i18n/i18n";
-import type { BackgroundColor, ReadingDirection, ViewerState } from "../types";
+import type {
+  BackgroundColor,
+  HideableControl,
+  ReadingDirection,
+  ViewerState
+} from "../types";
 import type { RendererCallbacks } from "../renderer/renderer-callbacks";
 import { RangeSlider, Selectbox, ToggleSwitch } from "./inputs";
 import { bindScrollFade } from "./scroll-fade";
@@ -24,7 +29,8 @@ export class SettingsPanel {
 
   constructor(
     private callbacks: RendererCallbacks,
-    private i18n: I18n
+    private i18n: I18n,
+    private hidden: ReadonlySet<HideableControl> = new Set()
   ) {
     this.root = document.createElement("div");
     this.root.className = "comimi-settings-panel";
@@ -71,17 +77,36 @@ export class SettingsPanel {
     this.backgroundColorLabel = this.createLabel();
     this.intervalLabel = this.createLabel();
 
-    this.inner.append(
-      this.titleEl,
-      this.section(this.localeLabel, this.localeSelect.getElement()),
-      this.section(this.coverLabel, this.coverToggle.getElement()),
-      this.section(this.directionLabel, this.directionSelect.getElement()),
-      this.section(this.intervalLabel, this.intervalSlider.getElement()),
-      this.section(
-        this.backgroundColorLabel,
-        this.backgroundColorSelect.getElement()
-      )
-    );
+    const sections: Node[] = [this.titleEl];
+    if (!this.hidden.has("locale")) {
+      sections.push(
+        this.section(this.localeLabel, this.localeSelect.getElement())
+      );
+    }
+    if (!this.hidden.has("cover")) {
+      sections.push(
+        this.section(this.coverLabel, this.coverToggle.getElement())
+      );
+    }
+    if (!this.hidden.has("direction")) {
+      sections.push(
+        this.section(this.directionLabel, this.directionSelect.getElement())
+      );
+    }
+    if (!this.hidden.has("interval")) {
+      sections.push(
+        this.section(this.intervalLabel, this.intervalSlider.getElement())
+      );
+    }
+    if (!this.hidden.has("backgroundColor")) {
+      sections.push(
+        this.section(
+          this.backgroundColorLabel,
+          this.backgroundColorSelect.getElement()
+        )
+      );
+    }
+    this.inner.append(...sections);
 
     this.body.append(this.inner);
     this.root.append(this.body);

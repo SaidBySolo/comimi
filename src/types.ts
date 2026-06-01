@@ -7,6 +7,22 @@ export type LayoutMode =
   | "browserFullscreen"
   | "nativeFullscreen";
 
+/**
+ * `hiddenSettings` で非表示にできる UI 項目のキー。
+ * 前半は設定パネル内の各行、後半はツールバー上の操作。
+ */
+export type HideableControl =
+  // 設定パネルの各項目
+  | "locale"
+  | "cover"
+  | "direction"
+  | "interval"
+  | "backgroundColor"
+  // ツールバーの操作
+  | "pageMode"
+  | "autoplay"
+  | "viewMode";
+
 export interface Manga {
   id: string;
   title: string;
@@ -102,6 +118,13 @@ export interface MangaViewerOptions {
   resolvePageSrc?: PageSrcResolver;
   lockLayoutMode?: boolean;
   mascot?: MascotOption;
+  /**
+   * 非表示にする UI 項目のキー一覧。設定パネルの各行
+   * （`locale` / `cover` / `direction` / `interval` / `backgroundColor`）と
+   * ツールバーの操作（`pageMode` / `autoplay` / `viewMode`）を個別に隠せる。
+   * 設定パネルの全項目を隠すと設定ボタン自体も表示されない。
+   */
+  hiddenSettings?: HideableControl[];
 }
 
 export type MascotOption =

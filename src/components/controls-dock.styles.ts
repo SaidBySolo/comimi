@@ -49,6 +49,14 @@ export const controlsDockStyles = `
   align-items: center;
 }
 
+/* hiddenSettings で隠したツールバー操作。
+   要素は DOM に残してグリッドの箱を維持し、見た目と操作だけ無効化する
+   （丸ごと削除すると space-between の2カラム前提が崩れるため）。 */
+.comimi-controls-dock [data-comimi-hidden="true"] {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .comimi-controls-side {
   display: grid;
   grid-auto-flow: column;

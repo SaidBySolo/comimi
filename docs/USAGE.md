@@ -100,7 +100,20 @@ interface MangaViewerOptions {
     | { src: string; alt?: string }
     | { render: () => HTMLElement }
     | false;
+  hiddenSettings?: HideableControl[];   // 非表示にする UI 項目
 }
+
+type HideableControl =
+  // 設定パネルの各項目
+  | "locale"
+  | "cover"
+  | "direction"
+  | "interval"
+  | "backgroundColor"
+  // ツールバーの操作
+  | "pageMode"
+  | "autoplay"
+  | "viewMode";
 ```
 
 ## ページ
@@ -172,6 +185,32 @@ createMangaViewer(container, {
   lockLayoutMode: true
 });
 ```
+
+## UI 項目を非表示にする
+
+`hiddenSettings` に非表示にしたい項目のキーを並べると、その UI を出さなくできます。設定パネルの各行と、ツールバーの操作の両方を個別に制御できます。
+
+| キー | 隠れるもの |
+|---|---|
+| `locale` | 設定パネル: 言語セレクト |
+| `cover` | 設定パネル: 表紙ありトグル |
+| `direction` | 設定パネル: 読み方向セレクト |
+| `interval` | 設定パネル: 自動再生間隔スライダー |
+| `backgroundColor` | 設定パネル: 背景色セレクト |
+| `pageMode` | ツールバー: 1ページ / 見開き切替 |
+| `autoplay` | ツールバー: 自動再生ボタン |
+| `viewMode` | ツールバー: 表示モード切替（switcher） |
+
+```ts
+createMangaViewer(container, {
+  manga,
+  hiddenSettings: ["locale", "backgroundColor", "autoplay"]
+});
+```
+
+- 設定パネルの5項目（`locale` / `cover` / `direction` / `interval` / `backgroundColor`）を**すべて**隠すと、設定ボタン（歯車）自体も表示されません。
+- `viewMode` は `lockLayoutMode: true` でも非表示になります（こちらはキーボードショートカットも無効化する点が異なります）。
+- `pageMode` / `autoplay` を隠してもキーボードショートカット（`P` / `A`）は引き続き有効です。UI だけを隠す指定です。
 
 ## キーボードショートカット
 

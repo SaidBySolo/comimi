@@ -1,5 +1,6 @@
 import { I18n } from "../i18n/i18n";
 import type {
+  HideableControl,
   MangaPage,
   MascotOption,
   PageTurnMode,
@@ -52,7 +53,8 @@ export class ControlsDock {
   constructor(
     private callbacks: RendererCallbacks,
     private i18n: I18n,
-    private mascot?: MascotOption
+    private mascot?: MascotOption,
+    private hidden: ReadonlySet<HideableControl> = new Set()
   ) {
     this.root = document.createElement("div");
     this.root.className = "comimi-controls-dock";
@@ -132,7 +134,10 @@ export class ControlsDock {
 
     this.pageModeSingleTooltip.textContent = this.i18n.t("pageMode.single");
     this.pageModeSpreadTooltip.textContent = this.i18n.t("pageMode.spread");
-    this.pageMode.style.display = isMobile ? "none" : "";
+    // 非表示時は data-comimi-hidden で隠すため display は触らない。
+    if (!this.hidden.has("pageMode")) {
+      this.pageMode.style.display = isMobile ? "none" : "";
+    }
 
     // Settings
     const settingsLabel = this.i18n.t("overlay.settings");
@@ -271,7 +276,11 @@ export class ControlsDock {
   private buildRow(): HTMLDivElement {
     const row = document.createElement("div");
     row.className = "comimi-controls-row";
-    row.append(this.buildAutoplay(), this.buildSide());
+    const autoplay = this.buildAutoplay();
+    if (this.hidden.has("autoplay")) {
+      autoplay.dataset.comimiHidden = "true";
+    }
+    row.append(autoplay, this.buildSide());
     return row;
   }
 
@@ -332,6 +341,9 @@ export class ControlsDock {
 
     pageModeWrapper.append(this.pageModeSingleBtn, this.pageModeSpreadBtn);
     this.pageMode.append(pageModeWrapper);
+    if (this.hidden.has("pageMode")) {
+      this.pageMode.dataset.comimiHidden = "true";
+    }
 
     [
       this.settingsContainer,
@@ -339,11 +351,29 @@ export class ControlsDock {
       this.settingsIcon,
       this.settingsTooltip
     ] = this.buildSettings();
-    this.settings = new SettingsPanel(this.callbacks, this.i18n);
+    this.settings = new SettingsPanel(this.callbacks, this.i18n, this.hidden);
     this.settingsContainer.append(this.settings.getElement());
+    // 設定パネルの全項目が隠れている場合は設定ボタン自体も隠す。
+    if (this.allSettingsHidden()) {
+      this.settingsContainer.dataset.comimiHidden = "true";
+    }
 
     this.side.append(this.pageMode, this.settingsContainer);
     return this.side;
+  }
+
+  private static readonly SETTINGS_PANEL_ITEMS: HideableControl[] = [
+    "locale",
+    "cover",
+    "direction",
+    "interval",
+    "backgroundColor"
+  ];
+
+  private allSettingsHidden(): boolean {
+    return ControlsDock.SETTINGS_PANEL_ITEMS.every((item) =>
+      this.hidden.has(item)
+    );
   }
 
   private buildPageModeButton(
