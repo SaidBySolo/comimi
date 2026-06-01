@@ -67,7 +67,42 @@ const outroPage: MangaPage = {
   `
 };
 
-const pages: MangaPage[] = [...imagePages, outroPage];
+const linkPage: MangaPage = {
+  id: "link",
+  type: "html",
+  html: `
+    <a
+      href="https://yui540.com"
+      target="_blank"
+      rel="noopener noreferrer"
+      style="
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        color: #fff;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        text-align: center;
+        text-decoration: none;
+        padding: 32px;
+      "
+    >
+      <div style="font-size: 22px; font-weight: 700;">
+        ページ全体がリンクです
+      </div>
+      <div style="font-size: 14px; opacity: 0.7;">
+        どこをタップしても yui540.com へ移動します →
+      </div>
+    </a>
+  `
+};
+
+const pages: MangaPage[] = [...imagePages, linkPage, outroPage];
 
 const container = document.querySelector<HTMLElement>("#viewer");
 

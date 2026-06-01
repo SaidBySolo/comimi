@@ -454,7 +454,7 @@ export class ViewerRenderer {
       this.callbacks.setZoom(nextScale, clampedPan.x, clampedPan.y);
     };
     const onMouseDown = (event: MouseEvent) => {
-      if (this.isPageTurnAnimating || this.isInteractiveTarget(event.target)) {
+      if (this.isPageTurnAnimating || this.isSwipeBlockingTarget(event.target)) {
         return;
       }
 
@@ -518,7 +518,7 @@ export class ViewerRenderer {
         return;
       }
 
-      if (this.isInteractiveTarget(event.target)) {
+      if (this.isSwipeBlockingTarget(event.target)) {
         return;
       }
 
@@ -551,7 +551,7 @@ export class ViewerRenderer {
         return;
       }
 
-      if (this.isInteractiveTarget(event.target)) {
+      if (this.isSwipeBlockingTarget(event.target)) {
         return;
       }
 
@@ -604,6 +604,15 @@ export class ViewerRenderer {
       this.callbacks.setPanel("none");
     };
 
+    // リンクや画像のネイティブドラッグ（ゴースト画像）を抑止し、
+    // スワイプ中のドラッグ追従が奪われないようにする。
+    const onDragStart = (event: DragEvent) => {
+      if (this.isSwipeBlockingTarget(event.target)) {
+        return;
+      }
+      event.preventDefault();
+    };
+
     this.root.addEventListener("click", onCaptureClick, true);
     this.root.addEventListener("click", onClick);
     this.root.addEventListener("wheel", onWheel, { passive: false });
@@ -613,6 +622,7 @@ export class ViewerRenderer {
     this.root.addEventListener("touchstart", onTouchStart, { passive: false });
     this.root.addEventListener("touchmove", onTouchMove, { passive: false });
     this.root.addEventListener("touchend", onTouchEnd);
+    this.root.addEventListener("dragstart", onDragStart);
 
     this.cleanup.push(
       () => this.root.removeEventListener("click", onCaptureClick, true),
@@ -623,7 +633,8 @@ export class ViewerRenderer {
       () => window.removeEventListener("mouseup", onMouseUp),
       () => this.root.removeEventListener("touchstart", onTouchStart),
       () => this.root.removeEventListener("touchmove", onTouchMove),
-      () => this.root.removeEventListener("touchend", onTouchEnd)
+      () => this.root.removeEventListener("touchend", onTouchEnd),
+      () => this.root.removeEventListener("dragstart", onDragStart)
     );
   }
 
@@ -739,6 +750,31 @@ export class ViewerRenderer {
           "select",
           "textarea",
           "a",
+          "iframe"
+        ].join(",")
+      )
+    );
+  }
+
+  // スワイプ（ページめくり）を開始させない要素。
+  // リンク（a）はジェスチャー追跡を許可し、タップなら遷移／スワイプならめくりに振り分ける。
+  private isSwipeBlockingTarget(target: EventTarget | null): boolean {
+    if (!(target instanceof Element)) {
+      return false;
+    }
+
+    return Boolean(
+      target.closest(
+        [
+          ".comimi-arrow-button",
+          ".comimi-view-switcher",
+          ".comimi-controls-dock",
+          ".comimi-menu-panel",
+          ".comimi-settings-panel",
+          "button",
+          "input",
+          "select",
+          "textarea",
           "iframe"
         ].join(",")
       )
