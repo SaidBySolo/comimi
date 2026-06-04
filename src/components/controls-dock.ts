@@ -353,27 +353,9 @@ export class ControlsDock {
     ] = this.buildSettings();
     this.settings = new SettingsPanel(this.callbacks, this.i18n, this.hidden);
     this.settingsContainer.append(this.settings.getElement());
-    // 設定パネルの全項目が隠れている場合は設定ボタン自体も隠す。
-    if (this.allSettingsHidden()) {
-      this.settingsContainer.dataset.comimiHidden = "true";
-    }
 
     this.side.append(this.pageMode, this.settingsContainer);
     return this.side;
-  }
-
-  private static readonly SETTINGS_PANEL_ITEMS: HideableControl[] = [
-    "locale",
-    "cover",
-    "direction",
-    "interval",
-    "backgroundColor"
-  ];
-
-  private allSettingsHidden(): boolean {
-    return ControlsDock.SETTINGS_PANEL_ITEMS.every((item) =>
-      this.hidden.has(item)
-    );
   }
 
   private buildPageModeButton(

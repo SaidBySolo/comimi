@@ -56,4 +56,10 @@ export const settingsPanelStyles = `
   font-weight: 400;
 }
 
+.comimi-settings-static-value {
+  color: #999;
+  font-size: 13px;
+  font-weight: 500;
+}
+
 `;

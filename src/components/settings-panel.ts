@@ -27,6 +27,8 @@ export class SettingsPanel {
   private backgroundColorSelect: Selectbox;
   private intervalSlider: RangeSlider;
 
+  private staticValues: Partial<Record<HideableControl, HTMLDivElement>> = {};
+
   constructor(
     private callbacks: RendererCallbacks,
     private i18n: I18n,
@@ -77,36 +79,34 @@ export class SettingsPanel {
     this.backgroundColorLabel = this.createLabel();
     this.intervalLabel = this.createLabel();
 
-    const sections: Node[] = [this.titleEl];
-    if (!this.hidden.has("locale")) {
-      sections.push(
-        this.section(this.localeLabel, this.localeSelect.getElement())
-      );
-    }
-    if (!this.hidden.has("cover")) {
-      sections.push(
-        this.section(this.coverLabel, this.coverToggle.getElement())
-      );
-    }
-    if (!this.hidden.has("direction")) {
-      sections.push(
-        this.section(this.directionLabel, this.directionSelect.getElement())
-      );
-    }
-    if (!this.hidden.has("interval")) {
-      sections.push(
-        this.section(this.intervalLabel, this.intervalSlider.getElement())
-      );
-    }
-    if (!this.hidden.has("backgroundColor")) {
-      sections.push(
-        this.section(
-          this.backgroundColorLabel,
-          this.backgroundColorSelect.getElement()
-        )
-      );
-    }
-    this.inner.append(...sections);
+    this.inner.append(
+      this.titleEl,
+      this.buildSection(
+        "locale",
+        this.localeLabel,
+        this.localeSelect.getElement()
+      ),
+      this.buildSection(
+        "cover",
+        this.coverLabel,
+        this.coverToggle.getElement()
+      ),
+      this.buildSection(
+        "direction",
+        this.directionLabel,
+        this.directionSelect.getElement()
+      ),
+      this.buildSection(
+        "interval",
+        this.intervalLabel,
+        this.intervalSlider.getElement()
+      ),
+      this.buildSection(
+        "backgroundColor",
+        this.backgroundColorLabel,
+        this.backgroundColorSelect.getElement()
+      )
+    );
 
     this.body.append(this.inner);
     this.root.append(this.body);
@@ -124,19 +124,19 @@ export class SettingsPanel {
     );
     this.intervalLabel.textContent = this.i18n.t("settings.interval");
 
-    this.localeSelect.setOptions([
+    const localeOptions = [
       { label: "日本語", value: "ja" },
       { label: "English", value: "en" },
       { label: "简体中文", value: "zh-CN" },
       { label: "한국어", value: "ko" },
       { label: "ภาษาไทย", value: "th" },
       { label: "Indonesia", value: "id" }
-    ]);
-    this.directionSelect.setOptions([
+    ];
+    const directionOptions = [
       { label: this.i18n.t("settings.direction.rtl"), value: "rtl" },
       { label: this.i18n.t("settings.direction.ltr"), value: "ltr" }
-    ]);
-    this.backgroundColorSelect.setOptions([
+    ];
+    const backgroundColorOptions = [
       {
         label: this.i18n.t("settings.backgroundColor.white"),
         value: "white"
@@ -145,15 +145,36 @@ export class SettingsPanel {
         label: this.i18n.t("settings.backgroundColor.black"),
         value: "black"
       }
-    ]);
-    this.intervalSlider.setUnit(this.i18n.t("settings.interval.unit"));
+    ];
+    const intervalUnit = this.i18n.t("settings.interval.unit");
+    const intervalSeconds = Math.round(
+      state.settings.autoPageTurnIntervalMs / 1000
+    );
+
+    this.localeSelect.setOptions(localeOptions);
+    this.directionSelect.setOptions(directionOptions);
+    this.backgroundColorSelect.setOptions(backgroundColorOptions);
+    this.intervalSlider.setUnit(intervalUnit);
 
     this.localeSelect.setValue(state.settings.locale);
     this.coverToggle.setChecked(state.settings.hasCover);
     this.directionSelect.setValue(state.settings.readingDirection);
     this.backgroundColorSelect.setValue(state.settings.backgroundColor);
-    this.intervalSlider.setValue(
-      Math.round(state.settings.autoPageTurnIntervalMs / 1000)
+    this.intervalSlider.setValue(intervalSeconds);
+
+    this.setStaticValue(
+      "locale",
+      this.labelFor(localeOptions, state.settings.locale)
+    );
+    this.setStaticValue("cover", state.settings.hasCover ? "ON" : "OFF");
+    this.setStaticValue(
+      "direction",
+      this.labelFor(directionOptions, state.settings.readingDirection)
+    );
+    this.setStaticValue("interval", `${intervalSeconds}${intervalUnit}`);
+    this.setStaticValue(
+      "backgroundColor",
+      this.labelFor(backgroundColorOptions, state.settings.backgroundColor)
     );
 
     this.root.dataset.open = String(state.panel === "settings");
@@ -169,6 +190,36 @@ export class SettingsPanel {
     const label = document.createElement("div");
     label.className = "comimi-settings-label";
     return label;
+  }
+
+  /**
+   * 非表示指定された項目は編集UIの代わりに値を静的表示する。
+   * 値の確認はできるが操作はできない。
+   */
+  private buildSection(
+    key: HideableControl,
+    label: HTMLDivElement,
+    control: HTMLElement
+  ): HTMLDivElement {
+    if (this.hidden.has(key)) {
+      const value = document.createElement("div");
+      value.className = "comimi-settings-static-value";
+      this.staticValues[key] = value;
+      return this.section(label, value);
+    }
+    return this.section(label, control);
+  }
+
+  private setStaticValue(key: HideableControl, text: string): void {
+    const value = this.staticValues[key];
+    if (value) value.textContent = text;
+  }
+
+  private labelFor(
+    options: { label: string; value: string }[],
+    value: string
+  ): string {
+    return options.find((opt) => opt.value === value)?.label ?? value;
   }
 
   private section(label: HTMLDivElement, control: HTMLElement): HTMLDivElement {

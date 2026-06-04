@@ -189,18 +189,23 @@ createMangaViewer(container, {
 
 ## UI 項目を非表示にする
 
-`hiddenSettings` に非表示にしたい項目のキーを並べると、その UI を出さなくできます。設定パネルの各行と、ツールバーの操作の両方を個別に制御できます。
+`hiddenSettings` に項目のキーを並べると、その UI の操作を無効化できます。設定パネルの各行と、ツールバーの操作の両方を個別に制御できます。
 
-| キー | 隠れるもの |
+**設定パネルの項目とツールバーの操作で挙動が異なります。**
+
+- **設定パネルの行**（`locale` / `cover` / `direction` / `interval` / `backgroundColor`）に指定すると、編集 UI の代わりに**現在の値を読み取り専用で静的表示**します。値の確認はできますが、変更はできません。
+- **ツールバーの操作**（`pageMode` / `autoplay` / `viewMode`）に指定すると、その UI を**出さなく**します。
+
+| キー | 効果 |
 |---|---|
-| `locale` | 設定パネル: 言語セレクト |
-| `cover` | 設定パネル: 表紙ありトグル |
-| `direction` | 設定パネル: 読み方向セレクト |
-| `interval` | 設定パネル: 自動再生間隔スライダー |
-| `backgroundColor` | 設定パネル: 背景色セレクト |
-| `pageMode` | ツールバー: 1ページ / 見開き切替 |
-| `autoplay` | ツールバー: 自動再生ボタン |
-| `viewMode` | ツールバー: 表示モード切替（switcher） |
+| `locale` | 設定パネル: 言語を読み取り専用表示 |
+| `cover` | 設定パネル: 表紙ありを読み取り専用表示 |
+| `direction` | 設定パネル: 読み方向を読み取り専用表示 |
+| `interval` | 設定パネル: 自動再生間隔を読み取り専用表示 |
+| `backgroundColor` | 設定パネル: 背景色を読み取り専用表示 |
+| `pageMode` | ツールバー: 1ページ / 見開き切替を非表示 |
+| `autoplay` | ツールバー: 自動再生ボタンを非表示 |
+| `viewMode` | ツールバー: 表示モード切替（switcher）を非表示 |
 
 ```ts
 createMangaViewer(container, {
@@ -209,7 +214,7 @@ createMangaViewer(container, {
 });
 ```
 
-- 設定パネルの5項目（`locale` / `cover` / `direction` / `interval` / `backgroundColor`）を**すべて**隠すと、設定ボタン（歯車）自体も表示されません。
+- 設定パネルの行は読み取り専用になっても表示されたままなので、設定ボタン（歯車）は常に表示されます。
 - `viewMode` は `lockLayoutMode: true` でも非表示になります（こちらはキーボードショートカットも無効化する点が異なります）。
 - `pageMode` / `autoplay` を隠してもキーボードショートカット（`P` / `A`）は引き続き有効です。UI だけを隠す指定です。
 
