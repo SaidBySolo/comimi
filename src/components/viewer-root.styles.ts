@@ -6,10 +6,33 @@ export const viewerRootStyles = `
   --comimi-fg: #333;
   --comimi-muted: #666;
   --comimi-soft: #999;
+  --comimi-accent: #666;
+  --comimi-contrast: #fff;
+  --comimi-icon-subtle: #aaa;
   --comimi-line: #e0e0e0;
   --comimi-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
   --comimi-glass: rgba(255, 255, 255, 0.8);
   --comimi-glass-strong: rgba(255, 255, 255, 0.8);
+  --comimi-hover: #f1f1f1;
+  --comimi-overlay: rgba(255, 255, 255, 0.5);
+  --comimi-page-surface: #fff;
+  --comimi-page-fg: #111;
+  --comimi-loading-stroke: #ccc;
+  --comimi-loading-eye: #ccc;
+  --comimi-loading-text: #aaa;
+  --comimi-splash-bg: #e0e0e0;
+  --comimi-splash-stroke: #fff;
+  --comimi-splash-heart-left: #eee;
+  --comimi-splash-heart-right: #fff;
+  --comimi-splash-text: #fff;
+  --comimi-splash-symbol-fill: #e0e0e0;
+  --comimi-splash-eye-fill: #fff;
+  --comimi-splash-typo-fill: #fff;
+  --comimi-scrollfade: #fff;
+  --comimi-dim: rgba(0, 0, 0, 0.06);
+  --comimi-handle-bg: #fff;
+  --comimi-handle-dot: #bbb;
+  --comimi-handle-dot-hover: #888;
   --comimi-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   background: var(--comimi-bg);
   color: var(--comimi-fg);
@@ -44,6 +67,38 @@ export const viewerRootStyles = `
 
 .comimi-root[data-bg="black"] {
   --comimi-bg: #000;
+  --comimi-surface: #191919;
+  --comimi-surface-2: #272727;
+  --comimi-fg: #f2f2f2;
+  --comimi-muted: #cdcdcd;
+  --comimi-soft: #969696;
+  --comimi-accent: #d2d2d2;
+  --comimi-contrast: #121212;
+  --comimi-icon-subtle: #a8a8a8;
+  --comimi-line: #3a3a3a;
+  --comimi-shadow: 0 0 12px rgba(0, 0, 0, 0.45);
+  --comimi-glass: rgba(22, 22, 22, 0.82);
+  --comimi-glass-strong: rgba(16, 16, 16, 0.88);
+  --comimi-hover: rgba(255, 255, 255, 0.08);
+  --comimi-overlay: rgba(16, 16, 16, 0.62);
+  --comimi-page-surface: #111;
+  --comimi-page-fg: #f2f2f2;
+  --comimi-loading-stroke: #7b7b7b;
+  --comimi-loading-eye: #b5b5b5;
+  --comimi-loading-text: #b0b0b0;
+  --comimi-splash-bg: #1b1b1b;
+  --comimi-splash-stroke: #c8c8c8;
+  --comimi-splash-heart-left: #5a5a5a;
+  --comimi-splash-heart-right: #c8c8c8;
+  --comimi-splash-text: #d5d5d5;
+  --comimi-splash-symbol-fill: #2c2c2c;
+  --comimi-splash-eye-fill: #d8d8d8;
+  --comimi-splash-typo-fill: #d8d8d8;
+  --comimi-scrollfade: #111;
+  --comimi-dim: rgba(255, 255, 255, 0.08);
+  --comimi-handle-bg: #111;
+  --comimi-handle-dot: #666;
+  --comimi-handle-dot-hover: #888;
 }
 
 .comimi-root[data-layout="wide"] {
@@ -75,7 +130,7 @@ export const viewerRootStyles = `
   position: relative;
   width: 100%;
   height: 20px;
-  background: #fff;
+  background: var(--comimi-handle-bg);
   cursor: ns-resize;
   touch-action: none;
 }
@@ -89,7 +144,7 @@ export const viewerRootStyles = `
   width: 40px;
   height: 3px;
   border-radius: 999px;
-  background: #bbb;
+  background: var(--comimi-handle-dot);
   transition:
     width 0.36s cubic-bezier(0.34, 1.56, 0.64, 1),
     height 0.36s cubic-bezier(0.34, 1.56, 0.64, 1),
@@ -100,7 +155,7 @@ export const viewerRootStyles = `
   .comimi-resize-handle:hover::after {
     width: 52px;
     height: 5px;
-    background: #888;
+    background: var(--comimi-handle-dot-hover);
   }
 }
 

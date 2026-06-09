@@ -8,8 +8,8 @@ export const moveDirectionGuideStyles = `
   height: var(--comimi-move-guide-size);
   transform: translate(-50%, -50%);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.7);
-  box-shadow: 0 0 8px 0 rgba(0, 0, 0, 0.1);
+  background: var(--comimi-overlay);
+  box-shadow: var(--comimi-shadow);
   backdrop-filter: blur(5px);
   pointer-events: none;
   z-index: 1;
@@ -52,7 +52,7 @@ export const moveDirectionGuideStyles = `
   width: 30px;
   height: 6px;
   border-radius: 999px;
-  background-color: #666;
+  background-color: var(--comimi-accent);
   animation: comimi-move-guide-arrow 0.6s ease-in-out 0.8s both;
 }
 
@@ -66,7 +66,7 @@ export const moveDirectionGuideStyles = `
   width: 16px;
   height: 6px;
   border-radius: 999px;
-  background-color: #666;
+  background-color: var(--comimi-accent);
   transform-origin: 3px center;
 }
 
@@ -87,7 +87,7 @@ export const moveDirectionGuideStyles = `
   font-weight: 400;
   text-align: center;
   line-height: 1.45;
-  color: #666;
+  color: var(--comimi-muted);
 }
 
 @keyframes comimi-move-guide-arrow {

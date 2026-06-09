@@ -87,7 +87,7 @@ export const menuPanelStyles = `
 .comimi-menu-title {
   display: block;
   width: 100%;
-  color: #333;
+  color: var(--comimi-fg);
   font-size: 15px;
   font-weight: 700;
   overflow: hidden;
@@ -98,7 +98,7 @@ export const menuPanelStyles = `
 .comimi-menu-author {
   display: block;
   width: 100%;
-  color: #666;
+  color: var(--comimi-muted);
   font-size: 12px;
   font-weight: 400;
   overflow: hidden;
@@ -116,7 +116,7 @@ export const menuPanelStyles = `
 .comimi-menu-border {
   width: 100%;
   height: 1px;
-  background: #e0e0e0;
+  background: var(--comimi-line);
 }
 
 .comimi-menu-view {
@@ -161,17 +161,17 @@ export const menuPanelStyles = `
   border: 0;
   border-radius: 10px;
   background: transparent;
-  color: #666;
+  color: var(--comimi-muted);
   cursor: pointer;
   transition: background-color 0.24s linear;
 }
 
 .comimi-menu-link:hover {
-  background: #f1f1f1;
+  background: var(--comimi-hover);
 }
 
 .comimi-menu-link-text {
-  color: #666;
+  color: var(--comimi-muted);
   font-size: 14px;
   font-weight: 700;
   line-height: 1.45;
@@ -182,7 +182,7 @@ export const menuPanelStyles = `
   display: block;
   width: 20px;
   height: 20px;
-  color: #aaa;
+  color: var(--comimi-icon-subtle);
 }
 
 .comimi-menu-link-arrow > svg {
@@ -211,7 +211,7 @@ export const menuPanelStyles = `
   padding: 0;
   border: 0;
   background: transparent;
-  color: #666;
+  color: var(--comimi-muted);
   cursor: pointer;
   text-align: center;
 }
@@ -221,9 +221,9 @@ export const menuPanelStyles = `
   display: block;
   width: 100%;
   aspect-ratio: 100 / 141;
-  background: #fff;
+  background: var(--comimi-page-surface);
   border-radius: 6px;
-  outline: 3px solid #e0e0e0;
+  outline: 3px solid var(--comimi-line);
 }
 
 .comimi-page-list-thumb-html {
@@ -235,7 +235,7 @@ export const menuPanelStyles = `
   box-sizing: border-box;
   padding: 8px;
   text-align: center;
-  color: #aaa;
+  color: var(--comimi-icon-subtle);
   font-size: 11px;
   font-weight: 700;
   line-height: 1.4;
@@ -252,7 +252,7 @@ export const menuPanelStyles = `
 }
 
 .comimi-page-list-text {
-  color: #666;
+  color: var(--comimi-muted);
   font-size: 14px;
   font-weight: 700;
 }
@@ -276,7 +276,7 @@ export const menuPanelStyles = `
 }
 
 .comimi-shortcut-heading {
-  color: #666;
+  color: var(--comimi-muted);
   font-size: 12px;
   font-weight: 700;
   line-height: 1.45;
@@ -310,11 +310,11 @@ export const menuPanelStyles = `
   align-items: center;
   padding: 4px 8px;
   border-radius: 7px;
-  background: #eeeeee;
+  background: var(--comimi-surface-2);
 }
 
 .comimi-shortcut-key {
-  color: #666;
+  color: var(--comimi-muted);
   font-size: 13px;
   font-weight: 700;
   line-height: 1.45;
@@ -323,14 +323,14 @@ export const menuPanelStyles = `
 .comimi-shortcut-or::before {
   content: "or";
   display: block;
-  color: #666;
+  color: var(--comimi-muted);
   font-size: 11px;
   font-weight: 400;
   line-height: 1.45;
 }
 
 .comimi-shortcut-label {
-  color: #666;
+  color: var(--comimi-muted);
   font-size: 13px;
   font-weight: 400;
   line-height: 1.45;
@@ -355,7 +355,7 @@ export const menuPanelStyles = `
   position: absolute;
   inset: 0;
   border-radius: 8px;
-  background: #eeeeee;
+  background: var(--comimi-surface-2);
   transition: inset 0.36s var(--comimi-spring), border-radius 0.36s var(--comimi-spring);
 }
 
@@ -369,7 +369,7 @@ export const menuPanelStyles = `
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  color: #666;
+  color: var(--comimi-muted);
   font-size: 14px;
   font-weight: 700;
   line-height: 1.45;
@@ -382,7 +382,7 @@ export const menuPanelStyles = `
   left: 8px;
   width: 22px;
   height: 22px;
-  color: #aaa;
+  color: var(--comimi-icon-subtle);
   transform: translateY(-50%) scaleX(-1);
   pointer-events: none;
 }

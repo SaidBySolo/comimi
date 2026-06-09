@@ -97,13 +97,13 @@ export const controlsDockStyles = `
 }
 
 .comimi-seek-current {
-  color: #333;
+  color: var(--comimi-fg);
   font-size: 12px;
   font-weight: 700;
 }
 
 .comimi-seek-total {
-  color: #999;
+  color: var(--comimi-soft);
   font-size: 12px;
   font-weight: 400;
   margin-left: 0.4em;
@@ -122,7 +122,7 @@ export const controlsDockStyles = `
   right: 0;
   height: 8px;
   border-radius: 999px;
-  background: #e0e0e0;
+  background: var(--comimi-line);
   overflow: hidden;
   transform: translateY(-50%);
   transition: height 0.36s var(--comimi-spring);
@@ -139,7 +139,7 @@ export const controlsDockStyles = `
   top: 0;
   height: 100%;
   border-radius: 999px;
-  background: #666;
+  background: var(--comimi-accent);
 }
 
 .comimi-seek-bar[data-direction="rtl"] .comimi-seek-fill {
@@ -183,7 +183,7 @@ export const controlsDockStyles = `
   margin-top: -5px;
   border: 0;
   border-radius: 50%;
-  background: #666;
+  background: var(--comimi-accent);
   box-shadow: none;
   transition:
     transform 0.36s var(--comimi-spring),
@@ -205,7 +205,7 @@ export const controlsDockStyles = `
   height: 18px;
   border: 0;
   border-radius: 50%;
-  background: #666;
+  background: var(--comimi-accent);
   box-shadow: none;
   transition:
     transform 0.36s var(--comimi-spring),
@@ -264,7 +264,7 @@ export const controlsDockStyles = `
   position: relative;
   width: 80px;
   aspect-ratio: 100 / 141;
-  background: #fff;
+  background: var(--comimi-page-surface);
   border-radius: 6px;
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
@@ -285,7 +285,7 @@ export const controlsDockStyles = `
   justify-content: center;
   box-sizing: border-box;
   padding: 8px;
-  color: #aaa;
+  color: var(--comimi-icon-subtle);
   font-size: 11px;
   font-weight: 700;
   line-height: 1.4;
@@ -293,8 +293,8 @@ export const controlsDockStyles = `
 }
 
 .comimi-seek-preview-label {
-  color: #333;
-  background: rgba(255, 255, 255, 0.5);
+  color: var(--comimi-fg);
+  background: var(--comimi-overlay);
   backdrop-filter: blur(5px);
   box-shadow: var(--comimi-shadow);
   border-radius: 8px;
@@ -327,7 +327,7 @@ export const controlsDockStyles = `
   padding: 0;
   border: 0;
   background: transparent;
-  color: #666;
+  color: var(--comimi-muted);
   cursor: pointer;
 }
 
@@ -375,7 +375,7 @@ export const controlsDockStyles = `
   width: 140px;
   height: 6px;
   border-radius: 999px;
-  background: #e0e0e0;
+  background: var(--comimi-line);
   overflow: hidden;
 }
 
@@ -384,7 +384,7 @@ export const controlsDockStyles = `
   position: absolute;
   inset: 0;
   border-radius: 999px;
-  background: #666;
+  background: var(--comimi-accent);
   animation: comimi-autoplay-progress 3s linear 0s infinite;
 }
 
@@ -404,7 +404,7 @@ export const controlsDockStyles = `
   height: 30px;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  background: #eeeeee;
+  background: var(--comimi-surface-2);
   border-radius: 8px;
   transform: translate(-50%, -50%);
   transition: width 0.36s var(--comimi-spring);
@@ -425,7 +425,7 @@ export const controlsDockStyles = `
   padding: 0;
   border: 0;
   background: transparent;
-  color: #666;
+  color: var(--comimi-muted);
   cursor: pointer;
 }
 
@@ -466,7 +466,7 @@ export const controlsDockStyles = `
   display: block;
   width: 100%;
   height: 100%;
-  color: #666;
+  color: var(--comimi-muted);
   transition: transform 0.36s var(--comimi-spring);
 }
 
@@ -506,7 +506,7 @@ export const controlsDockStyles = `
   z-index: 50;
   pointer-events: none;
   overflow: hidden;
-  background: rgba(0, 0, 0, 0.06);
+  background: var(--comimi-dim);
   opacity: 0;
   transition: opacity 0.16s linear;
 }
@@ -519,7 +519,7 @@ export const controlsDockStyles = `
   display: block;
   position: absolute;
   inset: 0;
-  background: #666;
+  background: var(--comimi-accent);
   animation: comimi-autoplay-progress 3s linear 0s infinite;
 }
 

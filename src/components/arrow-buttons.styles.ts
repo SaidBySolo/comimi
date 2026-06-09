@@ -94,7 +94,7 @@ export const arrowButtonsStyles = `
   left: 50%;
   width: 20px;
   height: 20px;
-  color: #666;
+  color: var(--comimi-muted);
   transform: translate(-50%, -50%);
   pointer-events: none;
 }

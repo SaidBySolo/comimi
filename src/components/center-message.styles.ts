@@ -18,10 +18,10 @@ export const centerMessageStyles = `
   box-sizing: border-box;
   padding: 6px 12px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--comimi-overlay);
   box-shadow: var(--comimi-shadow);
   backdrop-filter: blur(5px);
-  color: #666;
+  color: var(--comimi-muted);
   font-size: 12px;
   font-weight: 400;
   line-height: 1.45;

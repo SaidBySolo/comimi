@@ -22,7 +22,7 @@ export const loadingIconStyles = `
 
 .comimi-loading-stroke {
   fill: none;
-  stroke: #ccc;
+  stroke: var(--comimi-loading-stroke);
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 10px;
@@ -52,7 +52,7 @@ export const loadingIconStyles = `
 }
 
 .comimi-loading-eye {
-  fill: #ccc;
+  fill: var(--comimi-loading-eye);
   transform-origin: center;
   transform-box: fill-box;
   animation:
@@ -61,7 +61,7 @@ export const loadingIconStyles = `
 }
 
 .comimi-loading-icon-text {
-  color: #aaa;
+  color: var(--comimi-loading-text);
   font-size: 12px;
   font-weight: 700;
   line-height: 1.45;
