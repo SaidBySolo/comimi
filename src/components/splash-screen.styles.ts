@@ -74,6 +74,14 @@ export const splashScreenStyles = `
   overflow: visible;
 }
 
+.comimi-splash-body {
+  fill: var(--comimi-splash-symbol-fill);
+}
+
+.comimi-splash-typo-letter {
+  fill: var(--comimi-splash-typo-fill);
+}
+
 .comimi-splash-stroke {
   fill: none;
   stroke: var(--comimi-splash-stroke);
@@ -99,6 +107,7 @@ export const splashScreenStyles = `
 }
 
 .comimi-splash-eye {
+  fill: var(--comimi-splash-eye-fill);
   transform-origin: center;
   transform-box: fill-box;
   animation: comimi-splash-eye 0.4s ease-in-out 0.2s forwards;

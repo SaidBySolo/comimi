@@ -91,7 +91,7 @@ export const viewerRootStyles = `
   --comimi-splash-heart-left: #5a5a5a;
   --comimi-splash-heart-right: #c8c8c8;
   --comimi-splash-text: #d5d5d5;
-  --comimi-splash-symbol-fill: #2c2c2c;
+  --comimi-splash-symbol-fill: #1b1b1b;
   --comimi-splash-eye-fill: #d8d8d8;
   --comimi-splash-typo-fill: #d8d8d8;
   --comimi-scrollfade: #111;

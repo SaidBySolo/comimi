@@ -82,7 +82,7 @@ function buildDefaultSplashSymbol(): SVGSVGElement {
     "d",
     "M80.44,49.41H31.46c-12.97,6.71-21.6,18.57-21.6,32.1,0,5.8,1.59,11.3,4.43,16.21h83.34c2.83-4.92,4.43-10.41,4.43-16.21,0-13.53-8.63-25.4-21.6-32.1Z"
   );
-  body.setAttribute("fill", "#e0e0e0");
+  body.setAttribute("class", "comimi-splash-body");
   svg.append(body);
 
   const eyes = document.createElementNS(SVG_NS, "g");
@@ -93,7 +93,6 @@ function buildDefaultSplashSymbol(): SVGSVGElement {
     eye.setAttribute("cx", cx);
     eye.setAttribute("cy", "78.21");
     eye.setAttribute("r", "6");
-    eye.setAttribute("fill", "#fff");
     eyes.append(eye);
   }
   svg.append(eyes);
@@ -121,7 +120,7 @@ function renderSplashTypo(): HTMLDivElement {
   for (const d of letters) {
     const path = document.createElementNS(SVG_NS, "path");
     path.setAttribute("d", d);
-    path.setAttribute("fill", "#fff");
+    path.setAttribute("class", "comimi-splash-typo-letter");
     svg.append(path);
   }
 
