@@ -18,6 +18,7 @@ export const viewerRootStyles = `
   --comimi-page-surface: #fff;
   --comimi-page-fg: #111;
   --comimi-loading-stroke: #ccc;
+  --comimi-loading-body: #fff;
   --comimi-loading-eye: #ccc;
   --comimi-loading-text: #aaa;
   --comimi-splash-bg: #e0e0e0;
@@ -65,7 +66,7 @@ export const viewerRootStyles = `
   }
 }
 
-.comimi-root[data-bg="black"] {
+.comimi-root[data-color-mode="dark"] {
   --comimi-bg: #000;
   --comimi-surface: #191919;
   --comimi-surface-2: #272727;
@@ -84,6 +85,7 @@ export const viewerRootStyles = `
   --comimi-page-surface: #111;
   --comimi-page-fg: #f2f2f2;
   --comimi-loading-stroke: #7b7b7b;
+  --comimi-loading-body: #000;
   --comimi-loading-eye: #b5b5b5;
   --comimi-loading-text: #b0b0b0;
   --comimi-splash-bg: #1b1b1b;
@@ -99,6 +101,20 @@ export const viewerRootStyles = `
   --comimi-handle-bg: #111;
   --comimi-handle-dot: #666;
   --comimi-handle-dot-hover: #888;
+}
+
+.comimi-root[data-page-bg="white"] {
+  --comimi-bg: #fff;
+  --comimi-scrollfade: #fff;
+  --comimi-page-surface: #fff;
+  --comimi-page-fg: #111;
+}
+
+.comimi-root[data-page-bg="black"] {
+  --comimi-bg: #111;
+  --comimi-scrollfade: #111;
+  --comimi-page-surface: #111;
+  --comimi-page-fg: #f2f2f2;
 }
 
 .comimi-root[data-layout="wide"] {

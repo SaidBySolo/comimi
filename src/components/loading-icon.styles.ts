@@ -28,6 +28,10 @@ export const loadingIconStyles = `
   stroke-width: 10px;
 }
 
+.comimi-loading-body {
+  fill: var(--comimi-loading-body);
+}
+
 .comimi-loading-mimi {
   transform-origin: 56px 43px;
 }

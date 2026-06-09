@@ -1,6 +1,7 @@
 import { I18n } from "../i18n/i18n";
 import type {
   BackgroundColor,
+  ColorMode,
   HideableControl,
   ReadingDirection,
   ViewerState
@@ -19,12 +20,14 @@ export class SettingsPanel {
   private coverLabel: HTMLDivElement;
   private directionLabel: HTMLDivElement;
   private backgroundColorLabel: HTMLDivElement;
+  private colorModeLabel: HTMLDivElement;
   private intervalLabel: HTMLDivElement;
 
   private localeSelect: Selectbox;
   private coverToggle: ToggleSwitch;
   private directionSelect: Selectbox;
   private backgroundColorSelect: Selectbox;
+  private colorModeSelect: Selectbox;
   private intervalSlider: RangeSlider;
 
   private staticValues: Partial<Record<HideableControl, HTMLDivElement>> = {};
@@ -65,6 +68,11 @@ export class SettingsPanel {
         backgroundColor: backgroundColor as BackgroundColor
       })
     );
+    this.colorModeSelect = new Selectbox((colorMode) =>
+      this.callbacks.updateSettings({
+        colorMode: colorMode as ColorMode
+      })
+    );
     this.intervalSlider = new RangeSlider((seconds) =>
       this.callbacks.updateSettings({
         autoPageTurnIntervalMs: Math.max(1, seconds) * 1000
@@ -77,6 +85,7 @@ export class SettingsPanel {
     this.coverLabel = this.createLabel();
     this.directionLabel = this.createLabel();
     this.backgroundColorLabel = this.createLabel();
+    this.colorModeLabel = this.createLabel();
     this.intervalLabel = this.createLabel();
 
     this.inner.append(
@@ -102,6 +111,11 @@ export class SettingsPanel {
         this.intervalSlider.getElement()
       ),
       this.buildSection(
+        "colorMode",
+        this.colorModeLabel,
+        this.colorModeSelect.getElement()
+      ),
+      this.buildSection(
         "backgroundColor",
         this.backgroundColorLabel,
         this.backgroundColorSelect.getElement()
@@ -122,6 +136,7 @@ export class SettingsPanel {
     this.backgroundColorLabel.textContent = this.i18n.t(
       "settings.backgroundColor"
     );
+    this.colorModeLabel.textContent = this.i18n.t("settings.colorMode");
     this.intervalLabel.textContent = this.i18n.t("settings.interval");
 
     const localeOptions = [
@@ -146,6 +161,16 @@ export class SettingsPanel {
         value: "black"
       }
     ];
+    const colorModeOptions = [
+      {
+        label: this.i18n.t("settings.colorMode.light"),
+        value: "light"
+      },
+      {
+        label: this.i18n.t("settings.colorMode.dark"),
+        value: "dark"
+      }
+    ];
     const intervalUnit = this.i18n.t("settings.interval.unit");
     const intervalSeconds = Math.round(
       state.settings.autoPageTurnIntervalMs / 1000
@@ -154,12 +179,14 @@ export class SettingsPanel {
     this.localeSelect.setOptions(localeOptions);
     this.directionSelect.setOptions(directionOptions);
     this.backgroundColorSelect.setOptions(backgroundColorOptions);
+    this.colorModeSelect.setOptions(colorModeOptions);
     this.intervalSlider.setUnit(intervalUnit);
 
     this.localeSelect.setValue(state.settings.locale);
     this.coverToggle.setChecked(state.settings.hasCover);
     this.directionSelect.setValue(state.settings.readingDirection);
     this.backgroundColorSelect.setValue(state.settings.backgroundColor);
+    this.colorModeSelect.setValue(state.settings.colorMode);
     this.intervalSlider.setValue(intervalSeconds);
 
     this.setStaticValue(
@@ -175,6 +202,10 @@ export class SettingsPanel {
     this.setStaticValue(
       "backgroundColor",
       this.labelFor(backgroundColorOptions, state.settings.backgroundColor)
+    );
+    this.setStaticValue(
+      "colorMode",
+      this.labelFor(colorModeOptions, state.settings.colorMode)
     );
 
     this.root.dataset.open = String(state.panel === "settings");

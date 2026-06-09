@@ -131,7 +131,7 @@ export const inputsStyles = `
 }
 
 .comimi-toggle-switch[data-checked="true"] .comimi-toggle-knob {
-  background: var(--comimi-page-surface);
+  background: var(--comimi-contrast);
   transform: translateX(100%);
 }
 
