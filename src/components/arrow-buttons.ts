@@ -3,66 +3,77 @@ import { getPageStep } from "../defaults";
 import type { RendererCallbacks } from "../renderer/renderer-callbacks";
 import type { ReadingDirection, ViewerState } from "../types";
 
-export interface ArrowButtonsOptions {
-  state: ViewerState;
-  callbacks: RendererCallbacks;
-}
+/**
+ * オーバーレイ内の左右ページ送りボタン。
+ * DOM を作り直すとページ移動のたびにホバーアニメーションが再生されてしまうため、
+ * 要素は使い回し、状態（表示/活性）だけを update() で書き換える。
+ */
+export class ArrowButtons {
+  private root: HTMLDivElement;
+  private prevButton: HTMLButtonElement;
+  private nextButton: HTMLButtonElement;
+  private state?: ViewerState;
 
-export function renderArrowButtons({
-  state,
-  callbacks
-}: ArrowButtonsOptions): HTMLElement {
-  const fragment = document.createElement("div");
-  fragment.className = "comimi-arrows";
-  fragment.dataset.overlay = String(state.overlayVisible);
-  fragment.dataset.autoplay = String(state.autoPageTurnEnabled);
+  constructor(private callbacks: RendererCallbacks) {
+    this.root = document.createElement("div");
+    this.root.className = "comimi-arrows";
 
-  fragment.append(
-    renderArrowButton("prev", state, () =>
-      moveFromSide(state, callbacks, "left")
-    ),
-    renderArrowButton("next", state, () =>
-      moveFromSide(state, callbacks, "right")
-    )
-  );
-
-  return fragment;
-}
-
-function renderArrowButton(
-  variant: "prev" | "next",
-  state: ViewerState,
-  onClick: () => void
-): HTMLButtonElement {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = `comimi-arrow-button comimi-arrow-${variant}`;
-  button.setAttribute(
-    "aria-label",
-    variant === "next" ? "Next page" : "Previous page"
-  );
-
-  const side = variant === "prev" ? "left" : "right";
-  if (!canMoveFromSide(state, side)) {
-    button.dataset.disabled = "true";
+    this.prevButton = this.buildButton("prev", "left");
+    this.nextButton = this.buildButton("next", "right");
+    this.root.append(this.prevButton, this.nextButton);
   }
-  button.addEventListener("click", (event) => {
-    event.stopPropagation();
-    onClick();
-  });
 
-  const inner = document.createElement("span");
-  inner.className = "comimi-arrow-inner";
+  getElement(): HTMLElement {
+    return this.root;
+  }
 
-  const bg = document.createElement("span");
-  bg.className = "comimi-arrow-bg";
+  update(state: ViewerState): void {
+    this.state = state;
+    this.root.dataset.overlay = String(state.overlayVisible);
+    this.root.dataset.autoplay = String(state.autoPageTurnEnabled);
+    this.setDisabled(this.prevButton, !canMoveFromSide(state, "left"));
+    this.setDisabled(this.nextButton, !canMoveFromSide(state, "right"));
+  }
 
-  const arrowIcon = icon("arrow");
-  arrowIcon.classList.add("comimi-arrow-icon");
+  private setDisabled(button: HTMLButtonElement, disabled: boolean): void {
+    if (disabled) {
+      button.dataset.disabled = "true";
+    } else {
+      delete button.dataset.disabled;
+    }
+  }
 
-  inner.append(bg, arrowIcon);
-  button.append(inner);
-  return button;
+  private buildButton(
+    variant: "prev" | "next",
+    side: "left" | "right"
+  ): HTMLButtonElement {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `comimi-arrow-button comimi-arrow-${variant}`;
+    button.setAttribute(
+      "aria-label",
+      variant === "next" ? "Next page" : "Previous page"
+    );
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      if (this.state) {
+        moveFromSide(this.state, this.callbacks, side);
+      }
+    });
+
+    const inner = document.createElement("span");
+    inner.className = "comimi-arrow-inner";
+
+    const bg = document.createElement("span");
+    bg.className = "comimi-arrow-bg";
+
+    const arrowIcon = icon("arrow");
+    arrowIcon.classList.add("comimi-arrow-icon");
+
+    inner.append(bg, arrowIcon);
+    button.append(inner);
+    return button;
+  }
 }
 
 function moveFromSide(

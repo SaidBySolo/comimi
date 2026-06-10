@@ -1,5 +1,5 @@
 import { AssetLoader } from "../core/asset-loader";
-import { renderArrowButtons } from "../components/arrow-buttons";
+import { ArrowButtons } from "../components/arrow-buttons";
 import { renderCenterMessage } from "../components/center-message";
 import { ControlsDock } from "../components/controls-dock";
 import { MenuPanel } from "../components/menu-panel";
@@ -58,6 +58,7 @@ export class ViewerRenderer {
   private menuPanel?: MenuPanel;
   private viewModeSwitcher?: ViewModeSwitcher;
   private controlsDock?: ControlsDock;
+  private arrowButtons?: ArrowButtons;
   private resizeHandle?: HTMLDivElement;
   private viewSizeObserver?: ResizeObserver;
   private autoplayOverlayProgress?: HTMLDivElement;
@@ -179,11 +180,15 @@ export class ViewerRenderer {
     if (!this.notifications) {
       this.notifications = new Notifications();
     }
+    if (!this.arrowButtons) {
+      this.arrowButtons = new ArrowButtons(this.callbacks);
+    }
     const stageEl = this.pageStage.getElement();
     const menuPanelEl = this.menuPanel.getElement();
     const viewModeSwitcherEl = this.viewModeSwitcher?.getElement();
     const controlsDockEl = this.controlsDock.getElement();
     const notificationsEl = this.notifications.getElement();
+    const arrowButtonsEl = this.arrowButtons.getElement();
 
     // Remove non-persistent children, keep persistent ones in DOM
     Array.from(this.root.children).forEach((child) => {
@@ -194,7 +199,8 @@ export class ViewerRenderer {
         child !== controlsDockEl &&
         child !== this.splash &&
         child !== this.autoplayOverlayProgress &&
-        child !== notificationsEl
+        child !== notificationsEl &&
+        child !== arrowButtonsEl
       ) {
         child.remove();
       }
@@ -206,23 +212,37 @@ export class ViewerRenderer {
     this.pageStage.update(state, this.isMobileViewport());
     this.pageStage.snapTransform();
 
+    // 左右ボタンは永続要素。再生成するとホバーアニメが再生されるため、
+    // DOM は使い回して状態だけ更新する。
+    this.arrowButtons.update(renderState);
+
+    // 中央メッセージ・進行ガイドはフェード演出のため都度作り直す（非永続）。
     const newChildren: Node[] = [
       renderCenterMessage(centerMessageRenderVisible, this.i18n),
       renderMoveDirectionGuide(
         state.settings.readingDirection,
         moveGuideRenderVisible,
         this.i18n
-      ),
-      renderArrowButtons({ state: renderState, callbacks: this.callbacks })
+      )
     ];
 
     this.syncResizeHandle(state.layout.mode === "wide");
 
     const reference = menuPanelEl.parentNode === this.root ? menuPanelEl : null;
     if (reference) {
-      newChildren.forEach((child) => this.root.insertBefore(child, reference));
+      // 永続な左右ボタンは menuPanel の直前に一度だけ配置する。
+      if (arrowButtonsEl.parentNode !== this.root) {
+        this.root.insertBefore(arrowButtonsEl, reference);
+      }
+      // 非永続要素は左右ボタンの前へ挿入し、元の順序（中央/ガイド/矢印）を保つ。
+      newChildren.forEach((child) =>
+        this.root.insertBefore(child, arrowButtonsEl)
+      );
     } else {
       newChildren.forEach((child) => this.root.appendChild(child));
+      if (arrowButtonsEl.parentNode !== this.root) {
+        this.root.appendChild(arrowButtonsEl);
+      }
       this.root.appendChild(menuPanelEl);
     }
 

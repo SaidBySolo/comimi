@@ -184,7 +184,7 @@ export const splashScreenStyles = `
 
 @keyframes comimi-splash-clip {
   from {
-    clip-path: circle(70%);
+    clip-path: circle(75%);
   }
   to {
     clip-path: circle(0%);
