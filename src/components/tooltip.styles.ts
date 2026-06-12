@@ -5,10 +5,10 @@ export const tooltipStyles = `
   left: 50%;
   padding: 6px 10px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--comimi-glass-soft);
   box-shadow: var(--comimi-shadow);
   backdrop-filter: blur(5px);
-  color: #333;
+  color: var(--comimi-fg);
   font-size: 12px;
   font-weight: 600;
   line-height: 1.45;

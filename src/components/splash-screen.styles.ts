@@ -3,7 +3,7 @@ export const splashScreenStyles = `
   position: absolute;
   inset: 0;
   z-index: 10;
-  background-color: #e0e0e0;
+  background-color: var(--comimi-line);
   overflow: hidden;
   animation: comimi-splash-clip 1s cubic-bezier(0.82, 0.01, 0.48, 1.02) 1s both;
   pointer-events: none;
@@ -74,9 +74,14 @@ export const splashScreenStyles = `
   overflow: visible;
 }
 
+.comimi-splash-body {
+  fill: var(--comimi-line);
+  transition: fill 0.2s linear;
+}
+
 .comimi-splash-stroke {
   fill: none;
-  stroke: #fff;
+  stroke: var(--comimi-white);
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 10px;
@@ -127,12 +132,12 @@ export const splashScreenStyles = `
 
 .comimi-splash-heart::before {
   transform: translateX(-32%) rotate(45deg);
-  background-color: #eee;
+  background-color: var(--comimi-white);
 }
 
 .comimi-splash-heart::after {
   transform: translateX(32%) rotate(-45deg);
-  background-color: #fff;
+  background-color: var(--comimi-white);
 }
 
 .comimi-splash-heart-1 {
@@ -148,7 +153,7 @@ export const splashScreenStyles = `
   bottom: 0;
   left: 50%;
   transform: translate(-50%, 120%);
-  color: #fff;
+  color: var(--comimi-white);
   font-size: 16px;
   font-weight: 700;
   line-height: 1.45;

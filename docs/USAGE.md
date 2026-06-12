@@ -153,6 +153,7 @@ interface HtmlPage {
 | `layoutMode` | `"inline"` | `"inline"`, `"wide"`, `"browserFullscreen"`, `"nativeFullscreen"` |
 | `autoPageTurnIntervalMs` | `5000` | 自動再生の間隔 (ms) |
 | `backgroundColor` | `"white"` | `"white"` / `"black"`（ビューワー本体の背景色） |
+| `theme` | `"light"` | `"light"` / `"dark"`（UI全体のカラーテーマ。設定パネルの言語切替の下のトグルで変更可） |
 | `zoom.min` / `.max` / `.step` | `1` / `4` / `0.25` | ズームの範囲とステップ |
 
 ## レイアウトモード

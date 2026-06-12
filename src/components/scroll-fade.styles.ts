@@ -20,12 +20,12 @@ export const scrollFadeStyles = `
 
 .comimi-scrollfade::before {
   top: 0;
-  background: linear-gradient(to bottom, #fff, transparent);
+  background: linear-gradient(to bottom, var(--comimi-panel), transparent);
 }
 
 .comimi-scrollfade::after {
   bottom: 0;
-  background: linear-gradient(to top, #fff, transparent);
+  background: linear-gradient(to top, var(--comimi-panel), transparent);
 }
 
 .comimi-scrollfade[data-scroll-up="true"]::before {

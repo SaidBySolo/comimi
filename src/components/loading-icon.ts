@@ -9,7 +9,7 @@ const LOADING_SVG = `
     <path class="comimi-loading-stroke" d="M104.98,94.01c1.43-3.95,2.21-8.14,2.21-12.48,0-10.91-4.87-20.85-12.87-28.42" />
     <path class="comimi-loading-stroke comimi-loading-mimi comimi-loading-mimi-left" d="M55.79,43.81v-24.02c3.43-9.18,9.81-15.08,20.52-14.52,16.12.84,20.31,15.9,19.35,34.15-.25,4.75-.69,9.25-1.51,13.3" />
     <path class="comimi-loading-stroke comimi-loading-mimi comimi-loading-mimi-right" d="M55.79,43.62v-24.02c-3.25-9.2-9.34-15.11-19.78-14.56-16.53.87-21.21,15.95-20.25,34.2.26,4.91.67,9.56,1.51,13.72" />
-    <path fill="#fff" d="M80.44,49.41H31.46c-12.97,6.71-21.6,18.57-21.6,32.1,0,5.8,1.59,11.3,4.43,16.21h83.34c2.83-4.92,4.43-10.41,4.43-16.21,0-13.53-8.63-25.4-21.6-32.1Z" />
+    <path class="comimi-loading-body" d="M80.44,49.41H31.46c-12.97,6.71-21.6,18.57-21.6,32.1,0,5.8,1.59,11.3,4.43,16.21h83.34c2.83-4.92,4.43-10.41,4.43-16.21,0-13.53-8.63-25.4-21.6-32.1Z" />
     <g class="comimi-loading-eyes">
       <circle class="comimi-loading-eye" cx="40.17" cy="78.21" r="6" />
       <circle class="comimi-loading-eye" cx="71.58" cy="78.21" r="6" />

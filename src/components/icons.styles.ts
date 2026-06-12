@@ -32,7 +32,7 @@ export const iconStyles = `
   width: 17px;
   height: 3px;
   border-radius: 999px;
-  background: #666;
+  background: var(--comimi-muted);
 }
 
 .comimi-menu-svg span:nth-child(1) {

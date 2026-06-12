@@ -21,9 +21,14 @@ export const errorIconStyles = `
   animation: comimi-error-fall 0.8s ease-in-out 0s both;
 }
 
+.comimi-error-body {
+  fill: var(--comimi-bg);
+  transition: fill 0.2s linear;
+}
+
 .comimi-error-stroke {
   fill: none;
-  stroke: #ccc;
+  stroke: var(--comimi-placeholder);
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 10px;
@@ -46,14 +51,14 @@ export const errorIconStyles = `
 }
 
 .comimi-error-eye {
-  fill: #ccc;
+  fill: var(--comimi-placeholder);
   transform-origin: center;
   transform-box: fill-box;
   animation: comimi-error-eye 1.5s ease-in-out 0.8s infinite forwards;
 }
 
 .comimi-error-icon-text {
-  color: #aaa;
+  color: var(--comimi-faint);
   font-size: 12px;
   font-weight: 700;
   line-height: 1.45;

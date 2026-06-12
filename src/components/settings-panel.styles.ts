@@ -38,7 +38,7 @@ export const settingsPanelStyles = `
 }
 
 .comimi-settings-panel-title {
-  color: #333;
+  color: var(--comimi-fg);
   font-size: 14px;
   font-weight: 700;
   text-align: center;
@@ -51,13 +51,13 @@ export const settingsPanelStyles = `
 }
 
 .comimi-settings-label {
-  color: #333;
+  color: var(--comimi-fg);
   font-size: 12px;
   font-weight: 400;
 }
 
 .comimi-settings-static-value {
-  color: #999;
+  color: var(--comimi-soft);
   font-size: 13px;
   font-weight: 500;
 }

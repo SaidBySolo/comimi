@@ -9,7 +9,7 @@ export const inputsStyles = `
   position: absolute;
   inset: 0;
   border-radius: 8px;
-  background: #eeeeee;
+  background: var(--comimi-surface-2);
   transition: inset 0.36s var(--comimi-spring);
 }
 
@@ -43,8 +43,8 @@ export const inputsStyles = `
 }
 
 .comimi-selectbox-select option {
-  color: #333;
-  background-color: #fff;
+  color: var(--comimi-fg);
+  background-color: var(--comimi-panel);
 }
 
 .comimi-selectbox-label {
@@ -53,7 +53,7 @@ export const inputsStyles = `
   box-sizing: border-box;
   width: 100%;
   padding: 8px 32px 8px 12px;
-  color: #333;
+  color: var(--comimi-fg);
   font-size: 12px;
   font-weight: 400;
   line-height: 1.45;
@@ -68,7 +68,7 @@ export const inputsStyles = `
   z-index: 1;
   width: 16px;
   height: 16px;
-  color: #aaa;
+  color: var(--comimi-faint);
   transform: translateY(-50%) rotate(90deg);
   pointer-events: none;
 }
@@ -109,12 +109,12 @@ export const inputsStyles = `
   width: 32px;
   height: 18px;
   border-radius: 999px;
-  background: #eeeeee;
+  background: var(--comimi-surface-2);
   transition: background-color 0.2s linear;
 }
 
 .comimi-toggle-switch[data-checked="true"] .comimi-toggle-track {
-  background: #666;
+  background: var(--comimi-muted);
 }
 
 .comimi-toggle-knob {
@@ -124,14 +124,14 @@ export const inputsStyles = `
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #666;
+  background: var(--comimi-muted);
   transition:
     transform 0.36s var(--comimi-spring),
     background-color 0.2s linear;
 }
 
 .comimi-toggle-switch[data-checked="true"] .comimi-toggle-knob {
-  background: #fff;
+  background: var(--comimi-white);
   transform: translateX(100%);
 }
 
@@ -164,11 +164,11 @@ export const inputsStyles = `
 }
 
 .comimi-toggle-label-on {
-  color: #333;
+  color: var(--comimi-fg);
 }
 
 .comimi-toggle-label-off {
-  color: #aaa;
+  color: var(--comimi-faint);
   transform: translateX(100%);
 }
 
@@ -199,7 +199,7 @@ export const inputsStyles = `
   right: 0;
   height: 6px;
   border-radius: 999px;
-  background: #eeeeee;
+  background: var(--comimi-surface-2);
   overflow: hidden;
   transform: translateY(-50%);
   transition: height 0.36s var(--comimi-spring);
@@ -214,7 +214,7 @@ export const inputsStyles = `
 .comimi-range-slider-fill {
   display: block;
   height: 100%;
-  background: #666;
+  background: var(--comimi-muted);
   border-radius: inherit;
 }
 
@@ -246,7 +246,7 @@ export const inputsStyles = `
   margin-top: -6px;
   border: 0;
   border-radius: 50%;
-  background: #666;
+  background: var(--comimi-muted);
   box-shadow: none;
   transition:
     transform 0.36s var(--comimi-spring),
@@ -268,7 +268,7 @@ export const inputsStyles = `
   height: 18px;
   border: 0;
   border-radius: 50%;
-  background: #666;
+  background: var(--comimi-muted);
   box-shadow: none;
   transition:
     transform 0.36s var(--comimi-spring),
@@ -293,7 +293,7 @@ export const inputsStyles = `
 
 .comimi-range-slider-value {
   width: 36px;
-  color: #666;
+  color: var(--comimi-muted);
   font-size: 11px;
   font-weight: 400;
   line-height: 1;

@@ -20,7 +20,7 @@ export const notificationsStyles = `
   width: fit-content;
   padding: 6px 13px 6px 8px;
   border-radius: 999px;
-  background-color: #666;
+  background-color: var(--comimi-muted);
   animation: comimi-toast-popup 0.37s ease-in-out 0s both;
 }
 
@@ -29,11 +29,11 @@ export const notificationsStyles = `
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #888;
+  background: var(--comimi-handle-strong);
 }
 
 .comimi-toast-text {
-  color: #fff;
+  color: var(--comimi-white);
   font-size: 12px;
   font-weight: 700;
   line-height: 1.45;

@@ -93,8 +93,8 @@ export const pageStageStyles = `
   position: relative;
   width: min(100%, 960px);
   height: min(100%, 680px);
-  background: #fff;
-  color: #111;
+  background: var(--comimi-white);
+  color: var(--comimi-ink);
   overflow: auto;
 }
 

@@ -38,7 +38,7 @@ export const viewModeSwitcherStyles = `
   width: 60px;
   height: 100%;
   border-radius: 16px;
-  background: #666;
+  background: var(--comimi-muted);
   transition: transform 0.36s var(--comimi-spring);
 }
 
@@ -52,13 +52,13 @@ export const viewModeSwitcherStyles = `
   padding: 0;
   border: 0;
   background: transparent;
-  color: #666;
+  color: var(--comimi-muted);
   cursor: pointer;
   transition: color 0.2s linear;
 }
 
 .comimi-view-switcher-button[data-selected="true"] {
-  color: #fff;
+  color: var(--comimi-white);
 }
 
 .comimi-view-switcher-icon-wrap {

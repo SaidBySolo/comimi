@@ -128,6 +128,7 @@ export class ViewerRenderer {
     this.i18n.setLocale(state.settings.locale);
     this.root.dataset.layout = state.layout.mode;
     this.root.dataset.bg = state.settings.backgroundColor;
+    this.root.dataset.theme = state.settings.theme;
 
     if (state.layout.mode === "wide" && state.layout.wideHeightPx) {
       this.root.style.height = `${state.layout.wideHeightPx}px`;

@@ -1,6 +1,6 @@
 import { I18n } from "../i18n/i18n";
 import type {
-  BackgroundColor,
+  ColorTheme,
   HideableControl,
   ReadingDirection,
   ViewerState
@@ -16,15 +16,15 @@ export class SettingsPanel {
 
   private titleEl: HTMLDivElement;
   private localeLabel: HTMLDivElement;
+  private themeLabel: HTMLDivElement;
   private coverLabel: HTMLDivElement;
   private directionLabel: HTMLDivElement;
-  private backgroundColorLabel: HTMLDivElement;
   private intervalLabel: HTMLDivElement;
 
   private localeSelect: Selectbox;
+  private themeSelect: Selectbox;
   private coverToggle: ToggleSwitch;
   private directionSelect: Selectbox;
-  private backgroundColorSelect: Selectbox;
   private intervalSlider: RangeSlider;
 
   private staticValues: Partial<Record<HideableControl, HTMLDivElement>> = {};
@@ -52,17 +52,15 @@ export class SettingsPanel {
     this.localeSelect = new Selectbox((locale) =>
       this.callbacks.updateSettings({ locale: String(locale) })
     );
+    this.themeSelect = new Selectbox((theme) =>
+      this.callbacks.updateSettings({ theme: theme as ColorTheme })
+    );
     this.coverToggle = new ToggleSwitch((hasCover) =>
       this.callbacks.updateSettings({ hasCover })
     );
     this.directionSelect = new Selectbox((direction) =>
       this.callbacks.updateSettings({
         readingDirection: direction as ReadingDirection
-      })
-    );
-    this.backgroundColorSelect = new Selectbox((backgroundColor) =>
-      this.callbacks.updateSettings({
-        backgroundColor: backgroundColor as BackgroundColor
       })
     );
     this.intervalSlider = new RangeSlider((seconds) =>
@@ -74,9 +72,9 @@ export class SettingsPanel {
     this.intervalSlider.setRange(3, 30, 1);
 
     this.localeLabel = this.createLabel();
+    this.themeLabel = this.createLabel();
     this.coverLabel = this.createLabel();
     this.directionLabel = this.createLabel();
-    this.backgroundColorLabel = this.createLabel();
     this.intervalLabel = this.createLabel();
 
     this.inner.append(
@@ -86,6 +84,7 @@ export class SettingsPanel {
         this.localeLabel,
         this.localeSelect.getElement()
       ),
+      this.section(this.themeLabel, this.themeSelect.getElement()),
       this.buildSection(
         "cover",
         this.coverLabel,
@@ -100,11 +99,6 @@ export class SettingsPanel {
         "interval",
         this.intervalLabel,
         this.intervalSlider.getElement()
-      ),
-      this.buildSection(
-        "backgroundColor",
-        this.backgroundColorLabel,
-        this.backgroundColorSelect.getElement()
       )
     );
 
@@ -117,11 +111,9 @@ export class SettingsPanel {
   update(state: ViewerState): void {
     this.titleEl.textContent = this.i18n.t("settings.title");
     this.localeLabel.textContent = "Language";
+    this.themeLabel.textContent = this.i18n.t("settings.theme");
     this.coverLabel.textContent = this.i18n.t("settings.cover");
     this.directionLabel.textContent = this.i18n.t("settings.direction");
-    this.backgroundColorLabel.textContent = this.i18n.t(
-      "settings.backgroundColor"
-    );
     this.intervalLabel.textContent = this.i18n.t("settings.interval");
 
     const localeOptions = [
@@ -136,15 +128,9 @@ export class SettingsPanel {
       { label: this.i18n.t("settings.direction.rtl"), value: "rtl" },
       { label: this.i18n.t("settings.direction.ltr"), value: "ltr" }
     ];
-    const backgroundColorOptions = [
-      {
-        label: this.i18n.t("settings.backgroundColor.white"),
-        value: "white"
-      },
-      {
-        label: this.i18n.t("settings.backgroundColor.black"),
-        value: "black"
-      }
+    const themeOptions = [
+      { label: this.i18n.t("settings.theme.light"), value: "light" },
+      { label: this.i18n.t("settings.theme.dark"), value: "dark" }
     ];
     const intervalUnit = this.i18n.t("settings.interval.unit");
     const intervalSeconds = Math.round(
@@ -152,14 +138,14 @@ export class SettingsPanel {
     );
 
     this.localeSelect.setOptions(localeOptions);
+    this.themeSelect.setOptions(themeOptions);
     this.directionSelect.setOptions(directionOptions);
-    this.backgroundColorSelect.setOptions(backgroundColorOptions);
     this.intervalSlider.setUnit(intervalUnit);
 
     this.localeSelect.setValue(state.settings.locale);
+    this.themeSelect.setValue(state.settings.theme);
     this.coverToggle.setChecked(state.settings.hasCover);
     this.directionSelect.setValue(state.settings.readingDirection);
-    this.backgroundColorSelect.setValue(state.settings.backgroundColor);
     this.intervalSlider.setValue(intervalSeconds);
 
     this.setStaticValue(
@@ -172,10 +158,6 @@ export class SettingsPanel {
       this.labelFor(directionOptions, state.settings.readingDirection)
     );
     this.setStaticValue("interval", `${intervalSeconds}${intervalUnit}`);
-    this.setStaticValue(
-      "backgroundColor",
-      this.labelFor(backgroundColorOptions, state.settings.backgroundColor)
-    );
 
     this.root.dataset.open = String(state.panel === "settings");
 

@@ -17,6 +17,16 @@ export const rabbitMascotStyles = `
   object-fit: contain;
 }
 
+.comimi-rabbit-body {
+  fill: var(--comimi-mascot);
+  transition: fill 0.2s linear;
+}
+
+.comimi-rabbit-shade {
+  fill: var(--comimi-mascot-shade);
+  transition: fill 0.2s linear;
+}
+
 .comimi-controls-dock > .comimi-rabbit {
   bottom: 0;
   left: 50%;
@@ -40,7 +50,6 @@ export const rabbitMascotStyles = `
   }
 }
 
-/* { html } 指定で差し込まれたカスタムHTMLのラッパ。各エリアの枠いっぱいに収める。 */
 .comimi-mascot-html {
   display: flex;
   align-items: center;
